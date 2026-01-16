@@ -25,20 +25,20 @@ This document tracks actionable tasks for the project. Tasks are organized by ph
 - [x] **Build daughter's features first** (story writing, typing, illustrations)
 - [x] Then adapt the foundation for son's dungeon crawler game
 
-### Setup Tasks [NEXT UP!]
-- [ ] Install Node.js (if not already installed)
-- [ ] Install VS Code or preferred editor
-- [ ] Create Vercel account (sign in with GitHub)
-- [ ] Create Supabase account and project
-- [ ] Create Anthropic account and get Claude API key
-- [ ] Create Google AI Studio account and get Gemini API key
-- [ ] Set up GitHub repository (already done ✓)
-- [ ] Clone repository to local machine
-- [ ] Initialize Next.js project in `illustrated-primer/` folder
-- [ ] Install all dependencies
-- [ ] Set up environment variables (.env.local file)
-- [ ] Create database tables in Supabase
-- [ ] Test development server works (`npm run dev`)
+### Setup Tasks ✓ NEARLY COMPLETE!
+- [x] Install Node.js ✓
+- [x] Install VS Code ✓
+- [x] Create Vercel account (sign in with GitHub) ✓
+- [x] Create Supabase account and project ✓
+- [x] Create Anthropic account and get Claude API key ✓
+- [x] Create Google AI Studio account and get Gemini API key ✓
+- [x] Set up GitHub repository (already done) ✓
+- [x] Clone repository to local machine ✓
+- [x] Initialize Next.js project in `illustrated-primer/` folder ✓
+- [x] Install all dependencies ✓
+- [x] Set up environment variables (.env.local file) ✓
+- [ ] **Create database tables in Supabase** ← FINAL STEP!
+- [x] Test development server works (`npm run dev`) ✓
 
 **See DEVELOPMENT_SETUP.md for detailed step-by-step instructions!**
 
