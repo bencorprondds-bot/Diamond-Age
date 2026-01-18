@@ -35,16 +35,63 @@ export function Book() {
         <div className="w-full max-w-7xl mx-auto px-4 animate-fadeIn">
           <div className="flex gap-8 min-h-[600px]">
             
-            {/* LEFT PAGE - Story Text */}
-            <div className="flex-1 bg-[#F4E8D8] rounded-lg shadow-2xl p-12 relative">
-              <h3 className="text-2xl font-serif text-amber-900 mb-6">
-                📖 Story
+            {/* LEFT PAGE - Character Creation Form */}
+            <div className="flex-1 bg-[#F4E8D8] rounded-lg shadow-2xl p-8 relative flex flex-col">
+              <h3 className="text-3xl font-serif text-amber-900 mb-6 text-center">
+                ✨ Create Your Hero ✨
               </h3>
-              <div className="text-lg text-amber-950 font-serif leading-relaxed">
-                <p className="first-letter:text-7xl first-letter:font-bold first-letter:text-amber-800 first-letter:mr-3 first-letter:float-left">
-                  Welcome to your Illustrated Primer. Let us begin your journey...
-                </p>
+              
+              <div className="flex flex-col gap-4 flex-1">
+                <div className="flex flex-col gap-1">
+                  <label className="text-amber-800 font-serif text-sm">What&apos;s your hero&apos;s name?</label>
+                  <input 
+                    type="text"
+                    className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-2 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                    placeholder="Enter a name..."
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-amber-800 font-serif text-sm">What do they love to do?</label>
+                  <input 
+                    type="text"
+                    className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-2 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                    placeholder="Their favorite activities..."
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-amber-800 font-serif text-sm">What do you want to learn about?</label>
+                  <input 
+                    type="text"
+                    className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-2 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                    placeholder="Topics that spark curiosity..."
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-amber-800 font-serif text-sm">What makes them special?</label>
+                  <input 
+                    type="text"
+                    className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-2 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                    placeholder="Their unique talents..."
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-amber-800 font-serif text-sm">What do they dream of discovering?</label>
+                  <input 
+                    type="text"
+                    className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-2 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                    placeholder="Adventures awaiting..."
+                  />
+                </div>
+
+                <button className="mt-4 bg-gradient-to-r from-amber-700 to-amber-800 text-amber-50 font-serif text-lg py-3 px-6 rounded-lg shadow-lg hover:from-amber-800 hover:to-amber-900 transform hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]">
+                  Begin Adventure
+                </button>
               </div>
+
               <div className="absolute bottom-4 right-4 text-amber-600 text-sm">
                 1
               </div>
