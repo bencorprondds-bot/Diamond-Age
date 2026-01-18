@@ -10,7 +10,10 @@ export function Book() {
   const [lovesToDo, setLovesToDo] = useState('');
   const [wantsToLearn, setWantsToLearn] = useState('');
   const [specialTrait, setSpecialTrait] = useState('');
-  const [dreamDiscovery, setDreamDiscovery] = useState('');
+  const [hobbies, setHobbies] = useState('');
+  
+  // Confirmation state
+  const [showSaved, setShowSaved] = useState(false);
   
   // Typewriter effect state
   const [displayedHeading, setDisplayedHeading] = useState('');
@@ -40,8 +43,10 @@ export function Book() {
       lovesToDo,
       wantsToLearn,
       specialTrait,
-      dreamDiscovery
+      hobbies
     });
+    setShowSaved(true);
+    setTimeout(() => setShowSaved(false), 2000);
   };
 
   return (
@@ -127,15 +132,22 @@ export function Book() {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-amber-800 font-serif text-sm">What do they dream of discovering?</label>
+                  <label className="text-amber-800 font-serif text-sm">What are their hobbies?</label>
                   <input 
                     type="text"
-                    value={dreamDiscovery}
-                    onChange={(e) => setDreamDiscovery(e.target.value)}
+                    value={hobbies}
+                    onChange={(e) => setHobbies(e.target.value)}
                     className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-2 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
-                    placeholder="Adventures awaiting..."
+                    placeholder="Their favorite hobbies..."
                   />
                 </div>
+
+                {showSaved && (
+                  <div className="bg-green-100 text-green-700 rounded-lg px-4 py-3 flex items-center gap-2 animate-fadeIn">
+                    <span className="text-xl">✓</span>
+                    <span className="font-serif">Hero Saved!</span>
+                  </div>
+                )}
 
                 <button 
                   onClick={handleBeginAdventure}
