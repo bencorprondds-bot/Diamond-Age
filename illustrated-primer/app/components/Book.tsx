@@ -1,9 +1,48 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function Book() {
   const [isOpen, setIsOpen] = useState(false);
+  
+  // Form state
+  const [heroName, setHeroName] = useState('');
+  const [lovesToDo, setLovesToDo] = useState('');
+  const [wantsToLearn, setWantsToLearn] = useState('');
+  const [specialTrait, setSpecialTrait] = useState('');
+  const [dreamDiscovery, setDreamDiscovery] = useState('');
+  
+  // Typewriter effect state
+  const [displayedHeading, setDisplayedHeading] = useState('');
+  const fullHeading = '✨ Create Your Hero ✨';
+  
+  useEffect(() => {
+    if (isOpen && displayedHeading.length < fullHeading.length) {
+      const timeout = setTimeout(() => {
+        setDisplayedHeading(fullHeading.slice(0, displayedHeading.length + 1));
+      }, 80);
+      return () => clearTimeout(timeout);
+    }
+  }, [isOpen, displayedHeading]);
+  
+  // Reset typewriter when book opens
+  useEffect(() => {
+    if (isOpen) {
+      setDisplayedHeading('');
+    }
+  }, [isOpen]);
+  
+  const isFormValid = heroName.trim().length > 0;
+  
+  const handleBeginAdventure = () => {
+    console.log('Hero Created:', {
+      heroName,
+      lovesToDo,
+      wantsToLearn,
+      specialTrait,
+      dreamDiscovery
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#F5F5DC] flex items-center justify-center">
@@ -37,8 +76,9 @@ export function Book() {
             
             {/* LEFT PAGE - Character Creation Form */}
             <div className="flex-1 bg-[#F4E8D8] rounded-lg shadow-2xl p-8 relative flex flex-col">
-              <h3 className="text-3xl font-serif text-amber-900 mb-6 text-center">
-                ✨ Create Your Hero ✨
+              <h3 className="text-3xl font-serif text-amber-900 mb-6 text-center min-h-[2.5rem]">
+                {displayedHeading}
+                <span className="animate-pulse">|</span>
               </h3>
               
               <div className="flex flex-col gap-4 flex-1">
@@ -46,6 +86,8 @@ export function Book() {
                   <label className="text-amber-800 font-serif text-sm">What&apos;s your hero&apos;s name?</label>
                   <input 
                     type="text"
+                    value={heroName}
+                    onChange={(e) => setHeroName(e.target.value)}
                     className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-2 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
                     placeholder="Enter a name..."
                   />
@@ -55,6 +97,8 @@ export function Book() {
                   <label className="text-amber-800 font-serif text-sm">What do they love to do?</label>
                   <input 
                     type="text"
+                    value={lovesToDo}
+                    onChange={(e) => setLovesToDo(e.target.value)}
                     className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-2 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
                     placeholder="Their favorite activities..."
                   />
@@ -64,6 +108,8 @@ export function Book() {
                   <label className="text-amber-800 font-serif text-sm">What do you want to learn about?</label>
                   <input 
                     type="text"
+                    value={wantsToLearn}
+                    onChange={(e) => setWantsToLearn(e.target.value)}
                     className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-2 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
                     placeholder="Topics that spark curiosity..."
                   />
@@ -73,6 +119,8 @@ export function Book() {
                   <label className="text-amber-800 font-serif text-sm">What makes them special?</label>
                   <input 
                     type="text"
+                    value={specialTrait}
+                    onChange={(e) => setSpecialTrait(e.target.value)}
                     className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-2 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
                     placeholder="Their unique talents..."
                   />
@@ -82,12 +130,22 @@ export function Book() {
                   <label className="text-amber-800 font-serif text-sm">What do they dream of discovering?</label>
                   <input 
                     type="text"
+                    value={dreamDiscovery}
+                    onChange={(e) => setDreamDiscovery(e.target.value)}
                     className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-2 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
                     placeholder="Adventures awaiting..."
                   />
                 </div>
 
-                <button className="mt-4 bg-gradient-to-r from-amber-700 to-amber-800 text-amber-50 font-serif text-lg py-3 px-6 rounded-lg shadow-lg hover:from-amber-800 hover:to-amber-900 transform hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]">
+                <button 
+                  onClick={handleBeginAdventure}
+                  disabled={!isFormValid}
+                  className={`mt-4 font-serif text-lg py-3 px-6 rounded-lg shadow-lg transition-all duration-200 ${
+                    isFormValid 
+                      ? 'bg-gradient-to-r from-amber-700 to-amber-800 text-amber-50 hover:from-amber-800 hover:to-amber-900 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer' 
+                      : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                  }`}
+                >
                   Begin Adventure
                 </button>
               </div>
