@@ -3,7 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 export async function POST(request: Request) {
   try {
-    const { heroName, gender, lovesToDo, wantsToLearn, specialTrait, hobbies, previousStory, userContribution } = await request.json();
+    const { heroName, gender, storyType, lovesToDo, wantsToLearn, specialTrait, hobbies, previousStory, userContribution } = await request.json();
 
     const anthropic = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -11,9 +11,25 @@ export async function POST(request: Request) {
 
     let promptContent;
 
+    // Story type specific instructions
+    const getStoryTypeInstructions = (type: string) => {
+      switch (type) {
+        case 'adventure':
+          return 'Focus on exciting action, exploration, and challenges. Include moments of bravery, discovery, and overcoming obstacles.';
+        case 'learning':
+          return 'Weave educational content naturally into the story. Include interesting facts, scientific concepts, or historical elements that spark curiosity and learning.';
+        case 'creative':
+          return 'Emphasize imagination, creativity, and artistic expression. Include magical or whimsical elements that encourage creative thinking.';
+        case 'combination':
+          return 'Blend adventure, learning, and creativity together. Mix exciting challenges with educational moments and imaginative elements.';
+        default:
+          return '';
+      }
+    };
+
     if (previousStory && userContribution) {
       // Story continuation
-      promptContent = `You are continuing an interactive adventure story for a 10-year-old girl named Harlow who loves science, art, and learning.
+      promptContent = `You are continuing an interactive story for a 10-year-old girl named Harlow who loves science, art, and learning.
 
 Here's the story so far:
 ${previousStory}
@@ -26,15 +42,20 @@ Continue the story (about 100-150 words) building on what Harlow wrote. Make her
 IMPORTANT: The hero's name is ${heroName} and uses ${gender} pronouns. Always use the correct pronouns throughout the story.`;
     } else {
       // Initial story creation
+      const storyTypeInstructions = getStoryTypeInstructions(storyType);
+
       promptContent = `You are a creative storyteller for a 10-year-old girl named Harlow who loves science, art, and learning.
 
-Create the opening of an engaging adventure story (about 150 words) featuring a hero with these traits:
+Create the opening of an engaging story (about 150 words) featuring a hero with these traits:
 - Name: ${heroName}
 - Pronouns: ${gender}
 - Loves to do: ${lovesToDo}
 - Wants to learn about: ${wantsToLearn}
 - Special trait: ${specialTrait}
 - Hobbies: ${hobbies}
+
+STORY TYPE: ${storyType.toUpperCase()}
+${storyTypeInstructions}
 
 IMPORTANT: Use ${gender} pronouns for ${heroName} throughout the entire story.
 

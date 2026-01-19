@@ -8,6 +8,7 @@ export function Book() {
   // Form state
   const [heroName, setHeroName] = useState('');
   const [gender, setGender] = useState('');
+  const [storyType, setStoryType] = useState('');
   const [lovesToDo, setLovesToDo] = useState('');
   const [wantsToLearn, setWantsToLearn] = useState('');
   const [specialTrait, setSpecialTrait] = useState('');
@@ -21,6 +22,10 @@ export function Book() {
   const [showStory, setShowStory] = useState(false);
   const [storySegments, setStorySegments] = useState<Array<{type: 'ai' | 'user', text: string}>>([]);
   const [userInput, setUserInput] = useState('');
+
+  // Image state
+  const [currentImagePrompt, setCurrentImagePrompt] = useState('');
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   
   // Typewriter effect state
   const [displayedHeading, setDisplayedHeading] = useState('');
@@ -42,12 +47,40 @@ export function Book() {
     }
   }, [isOpen]);
   
-  const isFormValid = heroName.trim().length > 0 && gender.length > 0;
-  
+  const isFormValid = heroName.trim().length > 0 && gender.length > 0 && storyType.length > 0;
+
+  const generateImageForStory = async (storyText: string) => {
+    setIsGeneratingImage(true);
+    try {
+      const response = await fetch('/api/story/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          storyText,
+          heroName,
+          gender
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.error && data.imagePrompt) {
+        setCurrentImagePrompt(data.imagePrompt);
+      }
+    } catch (error) {
+      console.error('Failed to generate image:', error);
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
   const handleBeginAdventure = async () => {
     console.log('Hero Created:', {
       heroName,
       gender,
+      storyType,
       lovesToDo,
       wantsToLearn,
       specialTrait,
@@ -65,6 +98,7 @@ export function Book() {
         body: JSON.stringify({
           heroName,
           gender,
+          storyType,
           lovesToDo,
           wantsToLearn,
           specialTrait,
@@ -81,11 +115,18 @@ export function Book() {
       setIsGenerating(false);
       setShowStory(true);
       setStorySegments([{ type: 'ai', text: data.story }]);
+
+      // Generate image for the story
+      await generateImageForStory(data.story);
     } catch (error) {
       console.error('Failed to generate story:', error);
       setIsGenerating(false);
       setShowStory(true);
-      setStorySegments([{ type: 'ai', text: `Once upon a time, there lived a remarkable hero named ${heroName}. ${heroName} loved nothing more than ${lovesToDo || 'exploring new places'}, and spent their days dreaming of ${wantsToLearn || 'great adventures'}. What made ${heroName} truly special was ${specialTrait || 'their kind heart'}, a gift that would prove invaluable in the journey ahead. When not on adventures, ${heroName} enjoyed ${hobbies || 'reading by candlelight'}. Little did they know that today would be the beginning of their greatest adventure yet...` }]);
+      const fallbackStory = `Once upon a time, there lived a remarkable hero named ${heroName}. ${heroName} loved nothing more than ${lovesToDo || 'exploring new places'}, and spent their days dreaming of ${wantsToLearn || 'great adventures'}. What made ${heroName} truly special was ${specialTrait || 'their kind heart'}, a gift that would prove invaluable in the journey ahead. When not on adventures, ${heroName} enjoyed ${hobbies || 'reading by candlelight'}. Little did they know that today would be the beginning of their greatest adventure yet...`;
+      setStorySegments([{ type: 'ai', text: fallbackStory }]);
+
+      // Generate image for fallback story
+      await generateImageForStory(fallbackStory);
     }
   };
 
@@ -125,6 +166,9 @@ export function Book() {
       setIsGenerating(false);
       // Add AI's continuation as a new segment
       setStorySegments(prev => [...prev, { type: 'ai', text: data.story }]);
+
+      // Generate new image for the continuation
+      await generateImageForStory(data.story);
     } catch (error) {
       console.error('Failed to continue story:', error);
       setIsGenerating(false);
@@ -286,6 +330,56 @@ export function Book() {
                     </div>
 
                     <div className="flex flex-col gap-1">
+                      <label className="text-amber-800 font-serif text-sm">What kind of story do you want?</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setStoryType('adventure')}
+                          className={`py-2 px-4 rounded-lg font-serif text-sm transition-all ${
+                            storyType === 'adventure'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          Adventure
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStoryType('learning')}
+                          className={`py-2 px-4 rounded-lg font-serif text-sm transition-all ${
+                            storyType === 'learning'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          Learning
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStoryType('creative')}
+                          className={`py-2 px-4 rounded-lg font-serif text-sm transition-all ${
+                            storyType === 'creative'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          Creative
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStoryType('combination')}
+                          className={`py-2 px-4 rounded-lg font-serif text-sm transition-all ${
+                            storyType === 'combination'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          Combination
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
                       <label className="text-amber-800 font-serif text-sm">What do they love to do?</label>
                       <input 
                         type="text"
@@ -357,14 +451,39 @@ export function Book() {
             </div>
 
             {/* RIGHT PAGE - Image */}
-            <div className="flex-1 bg-[#2C2C2C] rounded-lg shadow-2xl relative">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-6xl mb-4">✨</div>
-                  <p className="text-amber-100 text-lg">
-                    Illustrations will appear here
-                  </p>
-                </div>
+            <div className="flex-1 bg-gradient-to-br from-[#2C2C2C] to-[#1a1a1a] rounded-lg shadow-2xl relative overflow-hidden">
+              <div className="absolute inset-0 flex items-center justify-center p-8">
+                {isGeneratingImage ? (
+                  // Loading state for image generation
+                  <div className="text-center animate-fadeIn">
+                    <div className="text-6xl mb-4 animate-pulse">🎨</div>
+                    <p className="text-amber-100 text-lg">
+                      Creating illustration...
+                    </p>
+                  </div>
+                ) : currentImagePrompt ? (
+                  // Display the image prompt as a beautiful description
+                  <div className="text-center animate-fadeIn">
+                    <div className="text-5xl mb-6">🖼️</div>
+                    <div className="bg-black/30 rounded-lg p-6 backdrop-blur-sm border border-amber-500/20">
+                      <h4 className="text-amber-300 font-serif text-lg mb-3">Scene Illustration</h4>
+                      <p className="text-amber-100 font-serif leading-relaxed text-base">
+                        {currentImagePrompt}
+                      </p>
+                    </div>
+                    <div className="mt-4 text-amber-400/60 text-sm italic">
+                      Image generation coming soon
+                    </div>
+                  </div>
+                ) : (
+                  // Default placeholder
+                  <div className="text-center">
+                    <div className="text-6xl mb-4">✨</div>
+                    <p className="text-amber-100 text-lg">
+                      Illustrations will appear here
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="absolute bottom-4 left-4 text-amber-400 text-sm">
                 2
