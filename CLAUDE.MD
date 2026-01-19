@@ -7,10 +7,10 @@
 **READ THIS FIRST:** This document contains essential context for maintaining continuity across sessions.
 
 ### Current Status
-- **Phase**: 1A - Daughter's Interactive Storybook ✅ **COMPLETE!**
-- **Last Completed**: Step 10 - Database storage with Supabase (save/load characters & stories)
-- **Current Branch**: `claude/continue-from-checkpoint-MRaFJ`
-- **Next Phase**: 1B - Enhanced Features (typing metrics, story formats, tutorials)
+- **Phase**: 1B - Enhanced Features (IN PROGRESS)
+- **Last Completed**: Phase 1A - Full interactive storybook with AI generation, images, and database
+- **Current Branch**: `claude/phase1b-typing-metrics-GPwcG`
+- **Focus**: Typing metrics, story improvements, educational mode overhaul, deployment
 
 ### Project Structure
 ```
@@ -134,9 +134,11 @@ git push -u origin claude/<branch-name>       # Push to remote
 
 ### Branch Management
 
-**Current Working Branch:** `claude/continue-from-checkpoint-MRaFJ`
+**Current Working Branch:** `claude/phase1b-typing-metrics-GPwcG`
 
 **CRITICAL: Always work on this branch to avoid confusion with outdated code on other branches.**
+
+**⚠️ IMPORTANT: When creating a new branch, you MUST immediately update the "Current Branch" field at the top of this file (line 12) and in this section. This ensures future AI sessions know which branch to use.**
 
 **Branch Naming Convention for AI Sessions:**
 
@@ -163,10 +165,10 @@ claude/<descriptive-feature-name>-<sessionId>
 git branch -a
 
 # Switch to the current working branch
-git checkout claude/continue-from-checkpoint-MRaFJ
+git checkout claude/phase1b-typing-metrics-GPwcG
 
 # Pull latest changes from working branch
-git pull origin claude/continue-from-checkpoint-MRaFJ
+git pull origin claude/phase1b-typing-metrics-GPwcG
 
 # Check which branch you're on
 git branch --show-current
@@ -192,7 +194,7 @@ git branch --show-current
 
 ```bash
 cd /home/user/Diamond-Age
-git pull origin claude/continue-from-checkpoint-MRaFJ
+git pull origin claude/phase1b-typing-metrics-GPwcG
 ```
 
 Then open VS Code and verify the latest changes are there.
