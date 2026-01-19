@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    const { characterId, title, storyFocus, segments, images } = await request.json();
+    const { characterId, title, storyFocus, genre, segments, images } = await request.json();
 
     if (!characterId || !title || !storyFocus || !segments) {
       return NextResponse.json(
@@ -21,7 +21,8 @@ export async function POST(request: Request) {
       .insert({
         character_id: characterId,
         title,
-        story_focus: storyFocus,
+        story_type: storyFocus,
+        genre: genre || 'fantasy',
         segments: segments,
         images: images || [],
         content,

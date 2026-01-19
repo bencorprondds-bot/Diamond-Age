@@ -42,6 +42,7 @@ export function Book() {
   const [heroName, setHeroName] = useState('');
   const [gender, setGender] = useState('');
   const [storyFocus, setStoryFocus] = useState('');
+  const [genre, setGenre] = useState('');
   const [lovesToDo, setLovesToDo] = useState('');
   const [wantsToLearn, setWantsToLearn] = useState('');
   const [specialTrait, setSpecialTrait] = useState('');
@@ -164,6 +165,7 @@ export function Book() {
       } else {
         body.characterId = currentCharacter.id;
         body.storyFocus = effectiveStoryFocus;
+        body.genre = genre?.trim() || 'fantasy';
       }
 
       console.log('Saving story with body:', JSON.stringify(body, null, 2));
@@ -323,7 +325,7 @@ export function Book() {
     }
   }, [isOpen, screen]);
   
-  const isFormValid = heroName.trim().length > 0 && gender.length > 0 && storyFocus.length > 0;
+  const isFormValid = heroName.trim().length > 0 && gender.length > 0 && storyFocus.length > 0 && genre.length > 0;
 
   // Function to generate an illustration based on story text
   const generateImage = async (storyText: string, isFirstImage: boolean = false) => {
@@ -385,6 +387,7 @@ export function Book() {
       heroName,
       gender,
       storyFocus,
+      genre,
       lovesToDo,
       wantsToLearn,
       specialTrait,
@@ -411,6 +414,7 @@ export function Book() {
           heroName,
           gender,
           storyFocus,
+          genre,
           lovesToDo,
           wantsToLearn,
           specialTrait,
@@ -464,7 +468,8 @@ export function Book() {
           userContribution,
           heroName,
           gender,
-          storyFocus
+          storyFocus,
+          genre
         }),
       });
 
@@ -816,6 +821,72 @@ export function Book() {
                         >
                           <div className="font-semibold">Educational Journey</div>
                           <div className="text-xs mt-1 opacity-80">Learn science, building & more!</div>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-amber-800 font-serif text-sm">Choose your adventure genre:</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setGenre('fantasy')}
+                          className={`py-3 px-3 rounded-lg font-serif text-sm transition-all ${
+                            genre === 'fantasy'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          <div className="font-semibold">Fantasy</div>
+                          <div className="text-xs mt-1 opacity-80">Magic & quests</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setGenre('mystery')}
+                          className={`py-3 px-3 rounded-lg font-serif text-sm transition-all ${
+                            genre === 'mystery'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          <div className="font-semibold">Mystery</div>
+                          <div className="text-xs mt-1 opacity-80">Solve puzzles</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setGenre('solarpunk')}
+                          className={`py-3 px-3 rounded-lg font-serif text-sm transition-all ${
+                            genre === 'solarpunk'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          <div className="font-semibold">Solarpunk</div>
+                          <div className="text-xs mt-1 opacity-80">Green futures</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setGenre('scifi')}
+                          className={`py-3 px-3 rounded-lg font-serif text-sm transition-all ${
+                            genre === 'scifi'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          <div className="font-semibold">Sci-Fi</div>
+                          <div className="text-xs mt-1 opacity-80">Space & tech</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setGenre('historical')}
+                          className={`py-3 px-3 rounded-lg font-serif text-sm transition-all ${
+                            genre === 'historical'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          <div className="font-semibold">Historical</div>
+                          <div className="text-xs mt-1 opacity-80">Real history</div>
                         </button>
                       </div>
                     </div>

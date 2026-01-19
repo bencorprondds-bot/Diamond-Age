@@ -1,9 +1,22 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
+// Genre-specific story guidance
+function getGenreGuidance(genre: string): string {
+  const genrePrompts: Record<string, string> = {
+    fantasy: 'FANTASY GENRE: Include magic systems, mythical creatures, enchanted objects, and epic quests. Think wizards, dragons, magical forests, and ancient prophecies.',
+    mystery: 'MYSTERY GENRE: Focus on clues, investigation, puzzles to solve, and secrets to uncover. Include red herrings, detective work, and plot twists.',
+    solarpunk: 'SOLARPUNK GENRE: Feature sustainable technology, hopeful green futures, harmony between nature and innovation. Include solar panels, vertical gardens, community cooperation, and environmental solutions.',
+    scifi: 'SCI-FI GENRE: Emphasize advanced technology, space exploration, futuristic science, robots, and scientific concepts. Make it plausible and grounded in real science when possible.',
+    historical: 'HISTORICAL GENRE: Set the story in a real historical period with authentic details, real events, and period-appropriate language. Research-based and educational about the era.'
+  };
+
+  return genrePrompts[genre] || genrePrompts.fantasy;
+}
+
 export async function POST(request: Request) {
   try {
-    const { heroName, gender, storyFocus, lovesToDo, wantsToLearn, specialTrait, hobbies, previousStory, userContribution } = await request.json();
+    const { heroName, gender, storyFocus, genre, lovesToDo, wantsToLearn, specialTrait, hobbies, previousStory, userContribution } = await request.json();
 
     const anthropic = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -17,9 +30,13 @@ export async function POST(request: Request) {
         ? 'This is an EDUCATIONAL story, so weave in science concepts, problem-solving, or learning moments naturally. Teach through adventure!'
         : 'This is a CREATIVE ADVENTURE story focused on imagination, excitement, and wonder. Keep it fun and fantastical!';
 
+      const genreGuidance = getGenreGuidance(genre || 'fantasy');
+
       promptContent = `You are continuing an interactive adventure story for a 10-year-old reader who loves science, art, and learning.
 
 ${focusGuidance}
+
+${genreGuidance}
 
 Here's the story so far:
 ${previousStory}
@@ -38,9 +55,13 @@ IMPORTANT: The hero's name is ${heroName} and uses ${gender} pronouns. Always us
         ? 'This is an EDUCATIONAL story. Incorporate science, math, engineering, or real-world problem-solving into the adventure. Make learning exciting and natural within the story!'
         : 'This is a CREATIVE ADVENTURE story. Focus on imagination, wonder, magic, and fantastical elements. Make it thrilling and fun!';
 
+      const genreGuidance = getGenreGuidance(genre || 'fantasy');
+
       promptContent = `You are a creative storyteller for a 10-year-old reader who loves science, art, and learning.
 
 ${focusGuidance}
+
+${genreGuidance}
 
 Create the opening of an engaging adventure story (45-60 words - keep it concise!) featuring a hero with these traits:
 - Name: ${heroName}
