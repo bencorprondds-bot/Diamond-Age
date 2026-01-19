@@ -3,7 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 export async function POST(request: Request) {
   try {
-    const { heroName, gender, lovesToDo, wantsToLearn, specialTrait, hobbies, previousStory, userContribution } = await request.json();
+    const { heroName, gender, storyFocus, lovesToDo, wantsToLearn, specialTrait, hobbies, previousStory, userContribution } = await request.json();
 
     const anthropic = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -13,7 +13,13 @@ export async function POST(request: Request) {
 
     if (previousStory && userContribution) {
       // Story continuation
+      const focusGuidance = storyFocus === 'educational'
+        ? 'This is an EDUCATIONAL story, so weave in science concepts, problem-solving, or learning moments naturally. Teach through adventure!'
+        : 'This is a CREATIVE ADVENTURE story focused on imagination, excitement, and wonder. Keep it fun and fantastical!';
+
       promptContent = `You are continuing an interactive adventure story for a 10-year-old girl named Harlow who loves science, art, and learning.
+
+${focusGuidance}
 
 Here's the story so far:
 ${previousStory}
@@ -26,7 +32,13 @@ Continue the story (about 100-150 words) building on what Harlow wrote. Make her
 IMPORTANT: The hero's name is ${heroName} and uses ${gender} pronouns. Always use the correct pronouns throughout the story.`;
     } else {
       // Initial story creation
+      const focusGuidance = storyFocus === 'educational'
+        ? 'This is an EDUCATIONAL story. Incorporate science, math, engineering, or real-world problem-solving into the adventure. Make learning exciting and natural within the story!'
+        : 'This is a CREATIVE ADVENTURE story. Focus on imagination, wonder, magic, and fantastical elements. Make it thrilling and fun!';
+
       promptContent = `You are a creative storyteller for a 10-year-old girl named Harlow who loves science, art, and learning.
+
+${focusGuidance}
 
 Create the opening of an engaging adventure story (about 150 words) featuring a hero with these traits:
 - Name: ${heroName}

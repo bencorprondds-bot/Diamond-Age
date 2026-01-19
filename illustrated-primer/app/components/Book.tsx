@@ -8,6 +8,7 @@ export function Book() {
   // Form state
   const [heroName, setHeroName] = useState('');
   const [gender, setGender] = useState('');
+  const [storyFocus, setStoryFocus] = useState('');
   const [lovesToDo, setLovesToDo] = useState('');
   const [wantsToLearn, setWantsToLearn] = useState('');
   const [specialTrait, setSpecialTrait] = useState('');
@@ -42,12 +43,13 @@ export function Book() {
     }
   }, [isOpen]);
   
-  const isFormValid = heroName.trim().length > 0 && gender.length > 0;
+  const isFormValid = heroName.trim().length > 0 && gender.length > 0 && storyFocus.length > 0;
   
   const handleBeginAdventure = async () => {
     console.log('Hero Created:', {
       heroName,
       gender,
+      storyFocus,
       lovesToDo,
       wantsToLearn,
       specialTrait,
@@ -65,6 +67,7 @@ export function Book() {
         body: JSON.stringify({
           heroName,
           gender,
+          storyFocus,
           lovesToDo,
           wantsToLearn,
           specialTrait,
@@ -112,7 +115,8 @@ export function Book() {
           previousStory,
           userContribution,
           heroName,
-          gender
+          gender,
+          storyFocus
         }),
       });
 
@@ -281,6 +285,36 @@ export function Book() {
                           }`}
                         >
                           They/Them
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-amber-800 font-serif text-sm">What kind of story would you like?</label>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setStoryFocus('creative')}
+                          className={`flex-1 py-3 px-4 rounded-lg font-serif text-sm transition-all ${
+                            storyFocus === 'creative'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          <div className="font-semibold">Creative Adventure</div>
+                          <div className="text-xs mt-1 opacity-80">Pure imagination & fun!</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStoryFocus('educational')}
+                          className={`flex-1 py-3 px-4 rounded-lg font-serif text-sm transition-all ${
+                            storyFocus === 'educational'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          <div className="font-semibold">Educational Journey</div>
+                          <div className="text-xs mt-1 opacity-80">Learn science, building & more!</div>
                         </button>
                       </div>
                     </div>
