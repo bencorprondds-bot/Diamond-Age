@@ -19,6 +19,7 @@ export function Book() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showStory, setShowStory] = useState(false);
   const [storyText, setStoryText] = useState('');
+  const [userInput, setUserInput] = useState('');
   
   // Typewriter effect state
   const [displayedHeading, setDisplayedHeading] = useState('');
@@ -85,6 +86,39 @@ export function Book() {
     }
   };
 
+  const handleContinueStory = async () => {
+    if (!userInput.trim()) return;
+    
+    setIsGenerating(true);
+    
+    try {
+      const response = await fetch('/api/story/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          previousStory: storyText,
+          userContribution: userInput,
+          heroName
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      setIsGenerating(false);
+      setStoryText(storyText + '\n\n' + userInput + '\n\n' + data.story);
+      setUserInput('');
+    } catch (error) {
+      console.error('Failed to continue story:', error);
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F5DC] flex items-center justify-center">
       {!isOpen ? (
@@ -134,11 +168,34 @@ export function Book() {
                   <h3 className="text-2xl font-serif text-amber-900 mb-6 text-center">
                     📖 The Tale of {heroName}
                   </h3>
-                  <div className="text-lg text-amber-950 font-serif leading-relaxed flex-1">
-                    <p className="first-letter:text-7xl first-letter:font-bold first-letter:text-amber-800 first-letter:mr-3 first-letter:float-left first-letter:leading-none">
+                  <div className="text-lg text-amber-950 font-serif leading-relaxed flex-1 overflow-y-auto mb-4">
+                    <p className="first-letter:text-7xl first-letter:font-bold first-letter:text-amber-800 first-letter:mr-3 first-letter:float-left first-letter:leading-none whitespace-pre-wrap">
                       {storyText}
                     </p>
                   </div>
+                  
+                  {!isGenerating && (
+                    <div className="flex flex-col gap-3 mt-4">
+                      <textarea
+                        value={userInput}
+                        onChange={(e) => setUserInput(e.target.value)}
+                        className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-3 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all resize-none"
+                        placeholder="What happens next? Type your response..."
+                        rows={3}
+                      />
+                      <button
+                        onClick={handleContinueStory}
+                        disabled={!userInput.trim()}
+                        className={`font-serif text-lg py-2 px-6 rounded-lg shadow-lg transition-all duration-200 ${
+                          userInput.trim()
+                            ? 'bg-gradient-to-r from-amber-700 to-amber-800 text-amber-50 hover:from-amber-800 hover:to-amber-900 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer'
+                            : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                        }`}
+                      >
+                        Continue Story
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 // FORM STATE (default)
