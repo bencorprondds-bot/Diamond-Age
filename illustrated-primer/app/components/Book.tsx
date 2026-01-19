@@ -22,6 +22,10 @@ export function Book() {
   const [showStory, setShowStory] = useState(false);
   const [storySegments, setStorySegments] = useState<Array<{type: 'ai' | 'user', text: string}>>([]);
   const [userInput, setUserInput] = useState('');
+
+  // Image state
+  const [currentImage, setCurrentImage] = useState<string | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   
   // Typewriter effect state
   const [displayedHeading, setDisplayedHeading] = useState('');
@@ -44,7 +48,44 @@ export function Book() {
   }, [isOpen]);
   
   const isFormValid = heroName.trim().length > 0 && gender.length > 0 && storyFocus.length > 0;
-  
+
+  // Function to generate an illustration based on story text
+  const generateImage = async (storyText: string) => {
+    setIsGeneratingImage(true);
+
+    try {
+      // Create a concise prompt from the story for image generation
+      const imagePrompt = `A ${heroName} who loves ${lovesToDo || 'adventure'}. The scene shows: ${storyText.slice(0, 200)}`;
+
+      const response = await fetch('/api/image/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: imagePrompt }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        console.error('Image generation error:', data.error);
+        // Don't throw - just log the error and continue without image
+        setIsGeneratingImage(false);
+        return;
+      }
+
+      // Set the image data (we'll adjust this based on what the API actually returns)
+      if (data.imageData) {
+        setCurrentImage(data.imageData);
+      }
+
+      setIsGeneratingImage(false);
+    } catch (error) {
+      console.error('Failed to generate image:', error);
+      setIsGeneratingImage(false);
+    }
+  };
+
   const handleBeginAdventure = async () => {
     console.log('Hero Created:', {
       heroName,
@@ -84,6 +125,9 @@ export function Book() {
       setIsGenerating(false);
       setShowStory(true);
       setStorySegments([{ type: 'ai', text: data.story }]);
+
+      // Generate an illustration for the story
+      generateImage(data.story);
     } catch (error) {
       console.error('Failed to generate story:', error);
       setIsGenerating(false);
@@ -129,6 +173,9 @@ export function Book() {
       setIsGenerating(false);
       // Add AI's continuation as a new segment
       setStorySegments(prev => [...prev, { type: 'ai', text: data.story }]);
+
+      // Generate a new illustration for this continuation
+      generateImage(data.story);
     } catch (error) {
       console.error('Failed to continue story:', error);
       setIsGenerating(false);
@@ -391,14 +438,39 @@ export function Book() {
             </div>
 
             {/* RIGHT PAGE - Image */}
-            <div className="flex-1 bg-[#2C2C2C] rounded-lg shadow-2xl relative">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-6xl mb-4">✨</div>
-                  <p className="text-amber-100 text-lg">
-                    Illustrations will appear here
-                  </p>
-                </div>
+            <div className="flex-1 bg-[#2C2C2C] rounded-lg shadow-2xl relative overflow-hidden">
+              <div className="absolute inset-0 flex items-center justify-center p-8">
+                {isGeneratingImage ? (
+                  // LOADING IMAGE STATE
+                  <div className="text-center animate-fadeIn">
+                    <div className="text-6xl mb-4 animate-pulse">🎨</div>
+                    <p className="text-amber-100 text-lg mb-3">
+                      Painting your story...
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <span className="w-3 h-3 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                      <span className="w-3 h-3 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                      <span className="w-3 h-3 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    </div>
+                  </div>
+                ) : currentImage ? (
+                  // IMAGE DISPLAY STATE
+                  <div className="w-full h-full flex items-center justify-center animate-fadeIn">
+                    <img
+                      src={currentImage}
+                      alt="Story illustration"
+                      className="max-w-full max-h-full object-contain rounded-lg shadow-xl"
+                    />
+                  </div>
+                ) : (
+                  // PLACEHOLDER STATE
+                  <div className="text-center">
+                    <div className="text-6xl mb-4">✨</div>
+                    <p className="text-amber-100 text-lg">
+                      Illustrations will appear here
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="absolute bottom-4 left-4 text-amber-400 text-sm">
                 2
