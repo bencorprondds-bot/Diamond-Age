@@ -241,46 +241,296 @@ Educational mode is currently too similar to creative mode - just storytelling w
 
 ---
 
-## Implementation Order (Recommended)
+## 🏗️ Updated Architecture: Character Persistence
 
-### Phase 1B.1: Foundation (Week 1)
-1. Deploy current app to Vercel (get it live first)
-2. Test on iPhone and fix any mobile issues
-3. Shorten AI response length (quick win)
+### Database Schema - Character → Adventures → Sessions
 
-### Phase 1B.2: Core Features (Week 2)
-4. Add genre selector (5 genres)
-5. Implement typing metrics tracking (real-time capture)
-6. Create session summary display
+```sql
+-- Characters table (existing, no changes needed)
+characters (
+  id, name, gender,
+  loves_to_do, wants_to_learn, special_trait, hobbies,
+  created_at, updated_at
+)
 
-### Phase 1B.3: Advanced Features (Week 3)
-7. Build progress visualization (charts)
-8. Implement achievements system
-9. Overhaul educational mode (Socratic method)
+-- Stories/Adventures table (updated)
+stories (
+  id, character_id,
+  title,                    -- Auto-generated on first save
+  story_type,               -- Educational, Creative
+  genre,                    -- Fantasy, Mystery, Solarpunk, Sci-fi, Historical
+  educational_topic,        -- If Educational type: "photosynthesis", "fractions", etc.
+  summary,                  -- 1-2 sentence summary (auto-generated)
+  first_image_url,          -- For thumbnail
+  total_sessions,           -- Count of sessions
+  created_at, updated_at
+)
 
-### Phase 1B.4: Optional Features (Week 4)
-10. Implement choose-your-own-adventure mode
-11. Final polish and testing
-12. Full user testing session with Harlow
+-- Story Sessions table (new)
+story_sessions (
+  id, story_id,
+  session_number,           -- 1, 2, 3, etc.
+  segments: json[],         -- [{type: 'ai'|'user', text, timestamp}]
+  images: string[],         -- Array of image URLs for this session
+  started_at, ended_at,
+
+  -- Typing metrics
+  total_words_typed,
+  total_time_seconds,
+  average_wpm,
+  accuracy_percentage,
+  corrections_count
+)
+
+-- Educational Progress table (new)
+educational_progress (
+  id, character_id,
+  topic,                    -- "photosynthesis", "fractions", etc.
+  summary,                  -- What was learned
+  quiz_score,               -- Retention quiz results (future)
+  learned_at
+)
+```
+
+### UI Flow - Character Persistence
+
+```
+1. Main Menu
+   ├── "My Characters" button
+   └── "Create New Character" button
+
+2. Character Library Screen
+   ├── Grid of character cards
+   │   ├── Character name + traits
+   │   ├── Total adventures count
+   │   └── Click to select
+   └── "Create New Character" button
+
+3. Character Selected: "Aravos"
+   ├── Character Info Panel (left side)
+   │   ├── Name, traits, hobbies
+   │   ├── Total adventures: 5
+   │   └── "Edit Character" button (future)
+   │
+   └── Adventures Panel (right side)
+       ├── Grid of adventure cards with thumbnails
+       │   ├── "The Mysterious Garden" (Mystery) - 2 sessions
+       │   ├── "Learning Photosynthesis" (Educational) - 1 session
+       │   └── Each shows first image as thumbnail
+       │
+       └── "Start New Adventure" button
+
+4. Start New Adventure
+   ├── Story Type: Educational / Creative
+   ├── Genre: Fantasy, Mystery, Solarpunk, Sci-fi, Historical
+   └── IF Educational: "What do you want to learn?" text input
+
+5. Adventure Selected: "The Mysterious Garden"
+   ├── Story Display (existing book UI)
+   ├── All previous sessions loaded
+   ├── Continue from last session
+   ├── "View Progress" button
+   └── "Save & Exit" button
+
+6. Save & Exit
+   ├── Auto-generate title (if first session)
+   ├── Auto-generate 1-2 sentence summary
+   ├── Save session with typing metrics
+   ├── Show Session Summary popup
+   └── Return to Character's Adventures screen
+```
+
+### Context Passing to AI
+
+**Creative Stories:**
+```javascript
+const context = `
+Character: ${character.name} (${character.gender})
+Traits: ${character.specialTrait}
+Interests: ${character.lovesToDo}, ${character.hobbies}
+
+Previous Adventures Summary:
+- "The Mysterious Garden" (Mystery): Discovered ancient seeds and met a talking bird
+- "The Solarpunk City" (Solarpunk): Explored sustainable technology and green architecture
+
+Maintain character consistency and personality.
+Genre: ${story.genre}
+`;
+```
+
+**Educational Stories:**
+```javascript
+const context = `
+Character: ${character.name} (${character.gender})
+Learning Goal: ${educational_topic}
+
+Previous Educational Topics:
+- Photosynthesis (learned: plants make food from sunlight, water, CO2)
+- Fractions (learned: parts of a whole, equivalent fractions)
+
+Review: Before starting new topic, briefly quiz understanding of "${previous_topic}".
+Then present problem related to "${educational_topic}" using Socratic method.
+`;
+```
 
 ---
 
-## Questions for Ben
+## Implementation Order (Recommended - Revised)
 
-1. **Typing Metrics:** Should we track metrics for BOTH the initial character creation AND story continuation, or only story continuation?
+### Week 1: Character Persistence + Story Improvements (Foundation)
 
-2. **Educational Topics:** What specific subjects is Harlow most interested in learning right now? (This will help us create better problem scenarios)
+**Goal:** Implement character-persistence architecture and improve story quality
 
-3. **Genre Priority:** Which of the 5 genres should we test first? (We can implement all but focus polish on her favorites)
+1. **Update Database Schema** (1-2 hours)
+   - Add `story_sessions` table to Supabase
+   - Add `educational_progress` table
+   - Update `stories` table with new fields (genre, summary, first_image_url, total_sessions)
+   - Update TypeScript types
 
-4. **Choose-Your-Own-Adventure:** Is this a must-have for Phase 1B, or can it wait for a later phase?
+2. **Shorten AI Responses** (15 minutes)
+   - Update prompts: 75-100 words → 45-60 words
+   - Test quality
 
-5. **Session Summary Timing:** Should the typing metrics summary appear:
-   - Immediately after she clicks "finish story"?
-   - As a separate "View Progress" button she can click?
-   - Both options?
+3. **Add Genre Selector** (2 hours)
+   - Add to "New Adventure" form (appears after character selection)
+   - Two-step: Story Type → Genre (5 buttons: Fantasy, Mystery, Solarpunk, Sci-fi, Historical)
+   - Form validation
+   - Store in stories table
 
-6. **Mobile Priority:** Is iPhone the primary device Harlow will use, or is desktop/laptop more common?
+4. **Update Character Selection UI** (3-4 hours)
+   - Character library shows all characters
+   - Click character → shows character info + adventures grid
+   - Adventures display as cards with thumbnails (first_image_url)
+   - "Start New Adventure" button
+   - Stats visible on adventure selection
+
+5. **Implement Story Summaries** (1-2 hours)
+   - Auto-generate 1-2 sentence summary on save using Claude
+   - Create `/api/story/summarize` endpoint
+   - Store in stories table
+   - Display in adventure cards
+
+6. **Auto-Title Generation** (1 hour)
+   - Generate title on first session save
+   - Use Claude to create engaging title
+   - Store in stories table
+
+7. **Genre-Specific Prompts** (2-3 hours)
+   - Update `/api/story/generate` with genre prompts
+   - Fantasy: magic, quests, mythical creatures
+   - Mystery: clues, investigation, puzzles
+   - Solarpunk: sustainable tech, hopeful futures
+   - Sci-fi: technology, space, science
+   - Historical: authentic period details
+   - Test each genre
+
+8. **Educational Mode Overhaul** (3-4 hours)
+   - Socratic method implementation
+   - "We have a problem..." format
+   - Review previous educational topics
+   - Quiz retention of previous learning
+   - Store learning progress in educational_progress table
+   - 4-6th grade level prompts
+
+**Deliverable:** Character-centric architecture working, stories shorter and varied, educational mode teaches effectively
+
+---
+
+### Week 2: Typing Metrics System
+
+**Goal:** Complete typing practice tracking with multi-session support
+
+9. **Multi-Session Story Loading** (2-3 hours)
+   - Load all sessions for a story
+   - Display session boundaries visually
+   - "Continue" starts new session
+   - Session numbering
+
+10. **Typing Tracker Component** (2-3 hours)
+    - Timer starts on first keystroke after AI response
+    - WPM calculation: (characters / 5) / minutes
+    - Accuracy tracking (backspace = correction)
+    - Track per session (not per response)
+    - Store in story_sessions table
+
+11. **Session Summary Display** (2 hours)
+    - Popup on "Save & Exit"
+    - Shows: words typed, time, WPM, accuracy, corrections
+    - Comparison to previous sessions
+    - Personal records highlighted
+    - Return to character's adventures screen
+
+12. **"View Progress" Button** (2 hours)
+    - Button visible during active session
+    - Shows live stats (current session)
+    - Popup that persists until clicked again
+    - Handle typing-in-progress state
+
+13. **Progress Dashboard** (3 hours)
+    - Create `/api/typing/get-progress` endpoint
+    - Line charts: WPM over time, accuracy trends
+    - Show per character or global
+    - Accessible from menu
+
+14. **Achievements System** (2 hours)
+    - Track: highest WPM, best accuracy, most words, longest streak
+    - Store in user profile or achievements table
+    - Display in Session Summary
+    - Celebrate new records
+
+**Deliverable:** Full typing metrics system working, Harlow can track progress
+
+---
+
+### Week 3: Polish & Testing (Deployment on hold)
+
+**Goal:** Bug fixes, optimization, and user testing
+
+15. **Bug Fixes & Error Handling** (2-3 hours)
+    - Review all error states
+    - Test edge cases
+    - Improve loading states
+    - Verify database persistence
+
+16. **UI Polish** (2 hours)
+    - Smooth animations
+    - Consistent styling
+    - Mobile responsiveness check (even though desktop-focused)
+
+17. **User Testing with Harlow** (Ongoing)
+    - Full session with new features
+    - Gather feedback
+    - Iterate based on observations
+
+18. **Performance Optimization** (1-2 hours)
+    - Optimize database queries
+    - Image loading optimization
+    - Check for memory leaks
+
+**Deliverable:** Polished, production-quality Phase 1B features
+
+**Note:** Vercel deployment on hold per Ben's request
+
+---
+
+## ✅ Decisions Made - Character Persistence Architecture
+
+### Character-Centric Model
+- **One character, multiple adventures** - Characters persist across different story types and genres
+- **Context continuity** - All adventures saved and provide context for future stories
+- **Educational continuity** - Previous learning topics reviewed, retention quizzing
+
+### Implementation Decisions
+1. **Story Summaries:** Auto-generate 1-2 sentence summaries using Claude
+2. **Character Editing:** Locked for now (consistency), but plan for future editing
+3. **Educational Topics:** Fresh selection each time + review previous learning + quiz retention
+4. **Story Naming:** Auto-title on save (AI generates from story content)
+5. **Character Screen:** Adventures with thumbnails (first image) + stats on selection
+6. **Typing Metrics:** Track only during story continuation (timer starts on first keystroke)
+7. **Session Summary:** Both immediate (on save) + "View Progress" button during session
+8. **Primary Device:** Desktop/laptop (mobile testing nice-to-have)
+9. **Genre Priority:** Fantasy → Mystery → Solarpunk → Sci-fi → Historical
+10. **Choose-Your-Own-Adventure:** Removed (not needed)
 
 ---
 

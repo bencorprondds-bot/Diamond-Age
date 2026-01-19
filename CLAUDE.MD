@@ -316,14 +316,47 @@ Then open VS Code and verify the latest changes are there.
 - ✅ Complete database persistence
 - ✅ Story library and character management
 
-### 🎯 Next: Phase 1B - Enhanced Features
+### 🎯 Phase 1B - Enhanced Features (IN PROGRESS)
 
-**Planned features for Phase 1B:**
-- Typing practice metrics (WPM, accuracy tracking)
-- Multiple story formats (different genres, styles)
-- Math and science interactive tutorials
-- Story sharing/export capabilities
-- Enhanced portfolio system
+**Architecture Update: Character Persistence Model**
+- Characters persist across multiple adventures
+- One character → many adventures (different types/genres)
+- Each adventure → multiple sessions with typing metrics
+- Context continuity: previous adventures inform new stories
+- Educational continuity: review previous topics, quiz retention
+
+**Key Features Being Built:**
+1. **Character-Centric Architecture**
+   - Character library → Adventure library per character
+   - Auto-generated story titles and summaries
+   - Adventure thumbnails (first image)
+   - Stats tracking per adventure
+
+2. **Story Improvements**
+   - Shorter AI responses (45-60 words, less reading, more typing)
+   - 5 genres: Fantasy, Mystery, Solarpunk, Sci-fi, Historical
+   - Genre-specific prompts for variety
+   - Two-step selection: Story Type → Genre
+
+3. **Educational Mode Overhaul**
+   - Socratic method (Q&A, not storytelling)
+   - "We have a problem..." format
+   - Review previous learning topics
+   - Quiz retention of past concepts
+   - 4-6th grade level content
+
+4. **Typing Metrics System**
+   - WPM and accuracy tracking per session
+   - Multi-session support (one story, many sessions)
+   - Session summaries on save
+   - "View Progress" during active session
+   - Progress dashboard with charts
+   - Achievements (highest WPM, best accuracy)
+
+5. **Database Updates**
+   - story_sessions table (multi-session support)
+   - educational_progress table (learning tracking)
+   - Updated stories table (genre, summary, thumbnails)
 
 ---
 
