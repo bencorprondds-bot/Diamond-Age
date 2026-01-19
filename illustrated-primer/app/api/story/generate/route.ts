@@ -27,7 +27,9 @@ ${previousStory}
 The reader just added this to the story:
 "${userContribution}"
 
-Continue the story (about 100-150 words) building on what the reader wrote. Make their contribution meaningful and exciting. Keep the tone engaging and age-appropriate. End with another opportunity for them to respond.
+Continue the story (45-60 words - keep it tight!) building on what the reader wrote. Make their contribution meaningful and exciting. Keep the tone engaging and age-appropriate. End with another opportunity for them to respond.
+
+CRITICAL: Keep response SHORT (45-60 words max). Less reading, more typing for the reader!
 
 IMPORTANT: The hero's name is ${heroName} and uses ${gender} pronouns. Always use the correct pronouns throughout the story.`;
     } else {
@@ -40,7 +42,7 @@ IMPORTANT: The hero's name is ${heroName} and uses ${gender} pronouns. Always us
 
 ${focusGuidance}
 
-Create the opening of an engaging adventure story (about 150 words) featuring a hero with these traits:
+Create the opening of an engaging adventure story (45-60 words - keep it concise!) featuring a hero with these traits:
 - Name: ${heroName}
 - Pronouns: ${gender}
 - Loves to do: ${lovesToDo}
