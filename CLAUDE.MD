@@ -1,16 +1,16 @@
 # The Illustrated Primer - AI Collaboration Guide
 
-*Last Updated: 2026-01-19*
+*Last Updated: 2026-01-19 (Phase 1A Complete!)*
 
 ## 🎯 Quick Start for New AI Sessions
 
 **READ THIS FIRST:** This document contains essential context for maintaining continuity across sessions.
 
 ### Current Status
-- **Phase**: 1A - Daughter's Interactive Storybook (IN PROGRESS)
-- **Last Completed**: Step 7 - Gender selection and visual story demarkation
-- **Current Branch**: `claude/update-claude-md-Ahewh`
-- **Next Tasks**: Story focus selection, image generation with Gemini
+- **Phase**: 1A - Daughter's Interactive Storybook ✅ **COMPLETE!**
+- **Last Completed**: Step 10 - Database storage with Supabase (save/load characters & stories)
+- **Current Branch**: `claude/continue-from-checkpoint-MRaFJ`
+- **Next Phase**: 1B - Enhanced Features (typing metrics, story formats, tutorials)
 
 ### Project Structure
 ```
@@ -23,11 +23,21 @@ Diamond-Age/
 ├── illustrated-primer/          # Main Next.js application
 │   ├── app/
 │   │   ├── components/
-│   │   │   └── Book.tsx        # Main interactive book component
+│   │   │   └── Book.tsx        # Main interactive book component (multi-screen UI)
 │   │   ├── api/
-│   │   │   └── story/
-│   │   │       └── generate/
-│   │   │           └── route.ts # Claude API integration
+│   │   │   ├── story/
+│   │   │   │   ├── generate/route.ts    # Claude API for story generation
+│   │   │   │   ├── save/route.ts        # Save stories to Supabase
+│   │   │   │   ├── list/route.ts        # List all saved stories
+│   │   │   │   └── load/[id]/route.ts   # Load specific story
+│   │   │   ├── image/
+│   │   │   │   └── generate/route.ts    # Gemini image generation
+│   │   │   └── character/
+│   │   │       ├── save/route.ts        # Save characters to Supabase
+│   │   │       ├── list/route.ts        # List all characters
+│   │   │       └── [id]/route.ts        # Get specific character
+│   │   ├── lib/
+│   │   │   └── supabase.ts     # Supabase client configuration
 │   │   ├── globals.css         # Global styles (animation timing)
 │   │   └── page.tsx            # Entry point
 │   ├── .env.local              # API keys (not in git)
@@ -122,6 +132,52 @@ git push -u origin claude/<branch-name>       # Push to remote
 - **Push** = "Mail the letter" (send to GitHub)
 - **Sync Changes** in VS Code = Commit + Push together
 
+### Branch Management
+
+**Current Working Branch:** `claude/continue-from-checkpoint-MRaFJ`
+
+**CRITICAL: Always work on this branch to avoid confusion with outdated code on other branches.**
+
+**Branch Naming Convention for AI Sessions:**
+
+All AI-created branches MUST follow this format:
+```
+claude/<descriptive-feature-name>-<sessionId>
+```
+
+**Examples:**
+- `claude/add-typing-metrics-Xy9kL` ← Good: Clear feature name + session ID
+- `claude/continue-from-checkpoint-MRaFJ` ← Good: Continuation branch
+- `claude/fix-image-loading-Abc12` ← Good: Bug fix description
+
+**Why this matters:**
+- Session IDs prevent branch name conflicts
+- Descriptive names make it easy to find work later
+- "claude/" prefix keeps AI branches organized
+- Future Claude instances can quickly identify the latest branch
+
+**Branch Management Commands:**
+
+```bash
+# View all branches (local and remote)
+git branch -a
+
+# Switch to the current working branch
+git checkout claude/continue-from-checkpoint-MRaFJ
+
+# Pull latest changes from working branch
+git pull origin claude/continue-from-checkpoint-MRaFJ
+
+# Check which branch you're on
+git branch --show-current
+```
+
+**For Future AI Sessions:**
+- ALWAYS check `CLAUDE.MD` for the "Current Working Branch"
+- NEVER assume which branch to use
+- When creating a new branch, use the naming convention above
+- Update CLAUDE.MD immediately if switching to a new primary branch
+
 ### Syncing Between AI Sessions
 
 **When starting a new session, AI should:**
@@ -136,10 +192,12 @@ git push -u origin claude/<branch-name>       # Push to remote
 
 ```bash
 cd /home/user/Diamond-Age
-git pull origin claude/update-claude-md-Ahewh
+git pull origin claude/continue-from-checkpoint-MRaFJ
 ```
 
 Then open VS Code and verify the latest changes are there.
+
+**IMPORTANT:** Always pull from the "Current Working Branch" listed at the top of this file!
 
 ---
 
@@ -154,13 +212,13 @@ Then open VS Code and verify the latest changes are there.
 - **React** (via Next.js)
 
 ### AI APIs
-- **Anthropic Claude** (claude-3-5-sonnet-20241022) - Story generation
-- **Google Gemini** - Image generation (ready to implement)
+- **Anthropic Claude** (claude-3-5-sonnet-20241022) - Story generation ✅ **ACTIVE**
+- **Google Gemini** (gemini-2.5-flash-image) - Image generation ✅ **ACTIVE**
 - **NOT using OpenAI** - User's explicit choice
 
 ### Hosting & Infrastructure
 - **Vercel** (free tier) - Frontend hosting
-- **Supabase** (PostgreSQL) - Database (tables created, not yet used)
+- **Supabase** (PostgreSQL) - Database ✅ **ACTIVE** (characters & stories tables)
 
 ### Development Tools
 - **Git/GitHub** - Version control
@@ -208,7 +266,7 @@ Then open VS Code and verify the latest changes are there.
 - Back-and-forth storytelling with context preservation
 - API handles both initial and continuation requests
 
-**Step 7: Gender Selection & Visual Demarkation** (JUST COMPLETED)
+**Step 7: Gender Selection & Visual Demarkation**
 - Added gender pronoun selector (she/her, he/him, they/them)
 - Form validation requires gender selection
 - Restructured story storage from string to array of segments
@@ -218,28 +276,52 @@ Then open VS Code and verify the latest changes are there.
   - Decorative separator (❦) between segments
 - API uses selected pronouns in story generation
 
-### 🎯 Next Steps (In Order)
+**Step 8: Story Focus Selection** ✅
+- Added story type selector during character creation
+- Options: Adventure, Learning, Creative, Combination
+- Each type has tailored prompts for different story styles
+- API generates appropriate story based on selected focus
+- File: `illustrated-primer/app/components/Book.tsx`
 
-**Step 8: Story Focus Selection** (NEXT)
-- Add theme selector during character creation
-- Options: "Creative Adventure" vs "Educational" (learn about science, building things, etc.)
-- Pass focus to API for appropriate story generation
+**Step 9: Image Generation with Gemini** ✅
+- Integrated Google Gemini 2.5 Flash Image model
+- Generates beautiful watercolor-style illustrations
+- Images display on right (dark) page of book
+- Reference image support for character consistency
+- Loading states with 🎨 animation
+- Files:
+  - `app/api/image/generate/route.ts` - Image generation endpoint
+  - `app/components/Book.tsx` - Image display logic
 
-**Step 9: Image Generation with Gemini**
-- Display AI-generated illustrations on right (dark) page
-- Integrate Google Gemini API
-- Generate images based on story content
+**Step 10: Database Storage with Supabase** ✅
+- Full Supabase integration for data persistence
+- Character management: save/load/list characters
+- Story management: save/load/list stories with images
+- Database schema with proper TypeScript types
+- Multi-screen UI: menu → character select → story
+- Files:
+  - `lib/supabase.ts` - Supabase client
+  - `app/api/character/` - Character CRUD operations
+  - `app/api/story/` - Story CRUD operations
 
-**Step 10: Persist Stories to Supabase**
-- Save stories to database (tables already exist)
-- Load previous stories
-- Story library for Harlow
+### 🎉 Phase 1A Complete!
 
-**Future Steps:**
-- Typing practice metrics (WPM, accuracy)
-- Story sharing/portfolio
-- Multiple story formats
-- Math/science tutorials
+**All core features are working:**
+- ✅ Character creation with pronouns and story focus
+- ✅ AI story generation with Claude
+- ✅ Interactive story continuation
+- ✅ AI-generated illustrations with Gemini
+- ✅ Complete database persistence
+- ✅ Story library and character management
+
+### 🎯 Next: Phase 1B - Enhanced Features
+
+**Planned features for Phase 1B:**
+- Typing practice metrics (WPM, accuracy tracking)
+- Multiple story formats (different genres, styles)
+- Math and science interactive tutorials
+- Story sharing/export capabilities
+- Enhanced portfolio system
 
 ---
 
@@ -367,15 +449,15 @@ git config --global user.email "your.email@example.com"
 
 ## 🌟 Vision & Goals
 
-### Short-term (Phase 1A - Current)
-Build Harlow's interactive storybook:
-- ✅ Character creation with gender selection
-- ✅ AI story generation with Claude
-- ✅ Interactive story continuation
-- ✅ Visual demarkation between contributions
-- ⏳ Story focus/theme selection
-- ⏳ AI-generated illustrations with Gemini
-- ⏳ Story persistence (save/load)
+### Short-term (Phase 1A - ✅ COMPLETE!)
+Harlow's interactive storybook is fully functional:
+- ✅ Character creation with gender selection and story focus
+- ✅ AI story generation with Claude (multiple story types)
+- ✅ Interactive story continuation with context preservation
+- ✅ Visual demarkation between AI and user contributions
+- ✅ AI-generated illustrations with Gemini (watercolor style)
+- ✅ Complete database persistence (save/load characters & stories)
+- ✅ Multi-screen UI with story library
 
 ### Medium-term (Phases 1B-2)
 - Typing practice with metrics
@@ -410,10 +492,11 @@ Build Harlow's interactive storybook:
 - Google AI: https://ai.google.dev
 - Tailwind CSS: https://tailwindcss.com/docs
 
-### API Keys Required
+### API Keys Required (All Active ✅)
 - `ANTHROPIC_API_KEY` - Claude API (in .env.local) ✅
-- `GOOGLE_AI_API_KEY` - Gemini API (ready to use) ⏳
-- Database credentials in Supabase dashboard ⏳
+- `GOOGLE_AI_API_KEY` - Gemini API (in .env.local) ✅
+- `SUPABASE_URL` - Supabase project URL (in .env.local) ✅
+- `SUPABASE_ANON_KEY` - Supabase public key (in .env.local) ✅
 
 ---
 
@@ -441,16 +524,18 @@ Build Harlow's interactive storybook:
 **When starting a new session:**
 
 ```markdown
-1. Read CLAUDE.MD (this file)
-2. Run: git status
-3. Run: git log --oneline -5
-4. Ask: "I've reviewed the project context. We last completed [X].
-        Would you like to continue with [next step] or work on
-        something else?"
-5. Use teaching approach with explanations
-6. Follow step-by-step workflow
-7. Update this file if protocols change
-8. Commit and push when done
+1. Read CLAUDE.MD (this file) - Check "Current Working Branch"
+2. Run: git branch --show-current (verify you're on correct branch)
+3. Run: git status
+4. Run: git log --oneline -5
+5. If not on current working branch: git checkout <current-working-branch>
+6. Ask: "I've reviewed the project context. We're on Phase [X].
+        Last completed: [feature]. Would you like to continue with
+        [next step] or work on something else?"
+7. Use teaching approach with explanations
+8. Follow step-by-step workflow
+9. Update this file if protocols change
+10. Commit and push when done
 ```
 
 ---
