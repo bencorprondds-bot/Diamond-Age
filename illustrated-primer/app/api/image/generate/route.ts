@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 export async function POST(request: Request) {
   try {
@@ -15,37 +15,49 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Google AI API key not configured' }, { status: 500 });
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
+    // Use Nano Banana (Gemini 2.5 Flash Image) for image generation
+    const client = new GoogleGenAI({ apiKey });
 
-    // Use Imagen 3 for image generation
-    const model = genAI.getGenerativeModel({ model: 'imagen-3.0-generate-001' });
+    const enhancedPrompt = `Create a beautiful, child-friendly illustration for a storybook. Style: watercolor painting, whimsical, colorful, suitable for a 10-year-old. Scene: ${prompt}`;
 
-    // Generate the image
-    const result = await model.generateContent({
-      contents: [{
-        role: 'user',
-        parts: [{
-          text: `Create a beautiful, child-friendly illustration for a storybook. Style: watercolor painting, whimsical, colorful, suitable for a 10-year-old. Scene: ${prompt}`,
-        }],
-      }],
-      generationConfig: {
-        temperature: 0.4,
-        candidateCount: 1,
+    const response = await client.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: [enhancedPrompt],
+      config: {
+        responseModalities: ['IMAGE'],
+        imageConfig: {
+          aspectRatio: '1:1',
+        },
       },
     });
 
-    const response = await result.response;
+    console.log('Full response:', JSON.stringify(response, null, 2));
 
-    // Extract the image data
-    // Note: The actual response format may vary - this is a basic implementation
-    // We'll need to adjust based on what Gemini actually returns
-    const imageData = response.candidates?.[0]?.content?.parts?.[0];
-
-    if (!imageData) {
-      return NextResponse.json({ error: 'No image generated' }, { status: 500 });
+    // Extract the image from the response - candidates is directly on response
+    const candidates = response.candidates;
+    
+    if (!candidates || candidates.length === 0) {
+      console.log('No candidates in response');
+      return NextResponse.json({ error: 'No image generated', debug: 'No candidates' }, { status: 500 });
     }
 
-    return NextResponse.json({ imageData });
+    const parts = candidates[0]?.content?.parts;
+    
+    if (!parts || parts.length === 0) {
+      console.log('No parts in response');
+      return NextResponse.json({ error: 'No image data in response', debug: 'No parts' }, { status: 500 });
+    }
+
+    for (const part of parts) {
+      if (part.inlineData) {
+        const { mimeType, data } = part.inlineData;
+        const imageDataUrl = `data:${mimeType};base64,${data}`;
+        return NextResponse.json({ imageData: imageDataUrl });
+      }
+    }
+
+    console.log('No inlineData found in parts');
+    return NextResponse.json({ error: 'No image generated', debug: 'No inlineData in parts' }, { status: 500 });
   } catch (error) {
     console.error('Error generating image:', error);
     return NextResponse.json({
