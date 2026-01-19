@@ -7,18 +7,19 @@ export function Book() {
   
   // Form state
   const [heroName, setHeroName] = useState('');
+  const [gender, setGender] = useState('');
   const [lovesToDo, setLovesToDo] = useState('');
   const [wantsToLearn, setWantsToLearn] = useState('');
   const [specialTrait, setSpecialTrait] = useState('');
   const [hobbies, setHobbies] = useState('');
-  
+
   // Confirmation state
   const [showSaved, setShowSaved] = useState(false);
-  
+
   // Loading and story state
   const [isGenerating, setIsGenerating] = useState(false);
   const [showStory, setShowStory] = useState(false);
-  const [storyText, setStoryText] = useState('');
+  const [storySegments, setStorySegments] = useState<Array<{type: 'ai' | 'user', text: string}>>([]);
   const [userInput, setUserInput] = useState('');
   
   // Typewriter effect state
@@ -41,11 +42,12 @@ export function Book() {
     }
   }, [isOpen]);
   
-  const isFormValid = heroName.trim().length > 0;
+  const isFormValid = heroName.trim().length > 0 && gender.length > 0;
   
   const handleBeginAdventure = async () => {
     console.log('Hero Created:', {
       heroName,
+      gender,
       lovesToDo,
       wantsToLearn,
       specialTrait,
@@ -53,7 +55,7 @@ export function Book() {
     });
     setShowSaved(false);
     setIsGenerating(true);
-    
+
     try {
       const response = await fetch('/api/story/generate', {
         method: 'POST',
@@ -62,57 +64,67 @@ export function Book() {
         },
         body: JSON.stringify({
           heroName,
+          gender,
           lovesToDo,
           wantsToLearn,
           specialTrait,
           hobbies
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.error) {
         throw new Error(data.error);
       }
-      
+
       setIsGenerating(false);
       setShowStory(true);
-      setStoryText(data.story);
+      setStorySegments([{ type: 'ai', text: data.story }]);
     } catch (error) {
       console.error('Failed to generate story:', error);
       setIsGenerating(false);
       setShowStory(true);
-      setStoryText(`Once upon a time, there lived a remarkable hero named ${heroName}. ${heroName} loved nothing more than ${lovesToDo || 'exploring new places'}, and spent their days dreaming of ${wantsToLearn || 'great adventures'}. What made ${heroName} truly special was ${specialTrait || 'their kind heart'}, a gift that would prove invaluable in the journey ahead. When not on adventures, ${heroName} enjoyed ${hobbies || 'reading by candlelight'}. Little did they know that today would be the beginning of their greatest adventure yet...`);
+      setStorySegments([{ type: 'ai', text: `Once upon a time, there lived a remarkable hero named ${heroName}. ${heroName} loved nothing more than ${lovesToDo || 'exploring new places'}, and spent their days dreaming of ${wantsToLearn || 'great adventures'}. What made ${heroName} truly special was ${specialTrait || 'their kind heart'}, a gift that would prove invaluable in the journey ahead. When not on adventures, ${heroName} enjoyed ${hobbies || 'reading by candlelight'}. Little did they know that today would be the beginning of their greatest adventure yet...` }]);
     }
   };
 
   const handleContinueStory = async () => {
     if (!userInput.trim()) return;
-    
+
+    const userContribution = userInput;
+    setUserInput('');
     setIsGenerating(true);
-    
+
+    // Add user's contribution to the story immediately
+    setStorySegments(prev => [...prev, { type: 'user', text: userContribution }]);
+
     try {
+      // Get full story context for the API
+      const previousStory = storySegments.map(seg => seg.text).join('\n\n');
+
       const response = await fetch('/api/story/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          previousStory: storyText,
-          userContribution: userInput,
-          heroName
+          previousStory,
+          userContribution,
+          heroName,
+          gender
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.error) {
         throw new Error(data.error);
       }
-      
+
       setIsGenerating(false);
-      setStoryText(storyText + '\n\n' + userInput + '\n\n' + data.story);
-      setUserInput('');
+      // Add AI's continuation as a new segment
+      setStorySegments(prev => [...prev, { type: 'ai', text: data.story }]);
     } catch (error) {
       console.error('Failed to continue story:', error);
       setIsGenerating(false);
@@ -168,12 +180,29 @@ export function Book() {
                   <h3 className="text-2xl font-serif text-amber-900 mb-6 text-center">
                     📖 The Tale of {heroName}
                   </h3>
-                  <div className="text-lg text-amber-950 font-serif leading-relaxed flex-1 overflow-y-auto mb-4">
-                    <p className="first-letter:text-7xl first-letter:font-bold first-letter:text-amber-800 first-letter:mr-3 first-letter:float-left first-letter:leading-none whitespace-pre-wrap">
-                      {storyText}
-                    </p>
+                  <div className="text-lg font-serif leading-relaxed flex-1 overflow-y-auto mb-4">
+                    {storySegments.map((segment, index) => (
+                      <div key={index}>
+                        {segment.type === 'ai' ? (
+                          <p className={`text-amber-950 mb-4 ${index === 0 ? 'first-letter:text-7xl first-letter:font-bold first-letter:text-amber-800 first-letter:mr-3 first-letter:float-left first-letter:leading-none' : ''}`}>
+                            {segment.text}
+                          </p>
+                        ) : (
+                          <div className="bg-[#E8DCC8] rounded-lg px-4 py-3 my-4 ml-4 border-l-4 border-amber-500">
+                            <p className="text-amber-900 italic">
+                              {segment.text}
+                            </p>
+                          </div>
+                        )}
+                        {index < storySegments.length - 1 && (
+                          <div className="text-center text-amber-500 my-4">
+                            ❦
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  
+
                   {!isGenerating && (
                     <div className="flex flex-col gap-3 mt-4">
                       <textarea
@@ -208,13 +237,52 @@ export function Book() {
                   <div className="flex flex-col gap-4 flex-1">
                     <div className="flex flex-col gap-1">
                       <label className="text-amber-800 font-serif text-sm">What&apos;s your hero&apos;s name?</label>
-                      <input 
+                      <input
                         type="text"
                         value={heroName}
                         onChange={(e) => setHeroName(e.target.value)}
                         className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-2 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
                         placeholder="Enter a name..."
                       />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-amber-800 font-serif text-sm">What pronouns does your hero use?</label>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setGender('she/her')}
+                          className={`flex-1 py-2 px-4 rounded-lg font-serif text-sm transition-all ${
+                            gender === 'she/her'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          She/Her
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setGender('he/him')}
+                          className={`flex-1 py-2 px-4 rounded-lg font-serif text-sm transition-all ${
+                            gender === 'he/him'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          He/Him
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setGender('they/them')}
+                          className={`flex-1 py-2 px-4 rounded-lg font-serif text-sm transition-all ${
+                            gender === 'they/them'
+                              ? 'bg-amber-600 text-amber-50 border-2 border-amber-700'
+                              : 'bg-[#FDF8F0] text-amber-800 border-2 border-amber-300 hover:border-amber-400'
+                          }`}
+                        >
+                          They/Them
+                        </button>
+                      </div>
                     </div>
 
                     <div className="flex flex-col gap-1">
