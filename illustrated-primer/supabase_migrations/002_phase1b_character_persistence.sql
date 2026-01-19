@@ -31,8 +31,8 @@ CREATE INDEX IF NOT EXISTS idx_stories_story_type ON stories(story_type);
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS story_sessions (
-  id BIGSERIAL PRIMARY KEY,
-  story_id BIGINT NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  story_id UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
   session_number INTEGER NOT NULL,
 
   -- Story content for this session
@@ -72,8 +72,8 @@ CREATE POLICY "Enable all access for story_sessions" ON story_sessions
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS educational_progress (
-  id BIGSERIAL PRIMARY KEY,
-  character_id BIGINT NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  character_id UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
 
   topic VARCHAR(255) NOT NULL,
   summary TEXT NOT NULL,

@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 // Database types
 export type Character = {
-  id: number;
+  id: string;  // UUID
   name: string;
   gender: string;
   loves_to_do: string;
@@ -15,8 +15,8 @@ export type Character = {
 };
 
 export type Story = {
-  id: number;
-  character_id: number;
+  id: string;  // UUID
+  character_id: string;  // UUID
   title: string | null;              // Auto-generated on first save
   story_type: string;                 // 'educational' or 'creative' (renamed from story_focus)
   genre: string | null;               // 'fantasy', 'mystery', 'solarpunk', 'scifi', 'historical'
@@ -37,8 +37,8 @@ export type StorySegment = {
 };
 
 export type StorySession = {
-  id: number;
-  story_id: number;
+  id: string;  // UUID
+  story_id: string;  // UUID
   session_number: number;             // 1, 2, 3, etc.
   segments: StorySegment[];           // Story content for this session
   images: string[];                   // Images generated during this session
@@ -54,8 +54,8 @@ export type StorySession = {
 };
 
 export type EducationalProgress = {
-  id: number;
-  character_id: number;
+  id: string;  // UUID
+  character_id: string;  // UUID
   topic: string;                      // "photosynthesis", "fractions", etc.
   summary: string;                    // What was learned
   quiz_score: number | null;          // Retention quiz results (future)
