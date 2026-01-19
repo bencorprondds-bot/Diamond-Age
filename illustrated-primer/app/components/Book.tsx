@@ -24,7 +24,7 @@ export function Book() {
   const [userInput, setUserInput] = useState('');
 
   // Image state
-  const [currentImage, setCurrentImage] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   
   // Typewriter effect state
@@ -50,12 +50,22 @@ export function Book() {
   const isFormValid = heroName.trim().length > 0 && gender.length > 0 && storyFocus.length > 0;
 
   // Function to generate an illustration based on story text
-  const generateImage = async (storyText: string) => {
+  const generateImage = async (storyText: string, isFirstImage: boolean = false) => {
     setIsGeneratingImage(true);
 
     try {
-      // Create a concise prompt from the story for image generation
-      const imagePrompt = `A ${heroName} who loves ${lovesToDo || 'adventure'}. The scene shows: ${storyText.slice(0, 200)}`;
+      // Build the prompt with watercolor style and consistency instructions
+      let styleInstructions = 'Create a beautiful watercolor illustration suitable for a children\'s storybook. ';
+
+      if (isFirstImage) {
+        // First image: establish the character and style
+        styleInstructions += `Watercolor painting style with soft colors and whimsical details. The main character is ${heroName} who loves ${lovesToDo || 'adventure'}. `;
+      } else {
+        // Subsequent images: maintain consistency
+        styleInstructions += `IMPORTANT: Match the exact watercolor painting style from the previous illustrations. Keep the same character design for ${heroName} with consistent features, clothing, and appearance. `;
+      }
+
+      const imagePrompt = `${styleInstructions}Scene: ${storyText.slice(0, 200)}`;
 
       const response = await fetch('/api/image/generate', {
         method: 'POST',
@@ -74,9 +84,9 @@ export function Book() {
         return;
       }
 
-      // Set the image data (we'll adjust this based on what the API actually returns)
+      // Add the new image to the array (append, don't replace)
       if (data.imageData) {
-        setCurrentImage(data.imageData);
+        setImages(prev => [...prev, data.imageData]);
       }
 
       setIsGeneratingImage(false);
@@ -126,8 +136,8 @@ export function Book() {
       setShowStory(true);
       setStorySegments([{ type: 'ai', text: data.story }]);
 
-      // Generate an illustration for the story
-      generateImage(data.story);
+      // Generate the first illustration for the story
+      generateImage(data.story, true);
     } catch (error) {
       console.error('Failed to generate story:', error);
       setIsGenerating(false);
@@ -437,38 +447,50 @@ export function Book() {
               </div>
             </div>
 
-            {/* RIGHT PAGE - Image */}
+            {/* RIGHT PAGE - Image Gallery */}
             <div className="flex-1 bg-[#2C2C2C] rounded-lg shadow-2xl relative overflow-hidden">
-              <div className="absolute inset-0 flex items-center justify-center p-8">
-                {isGeneratingImage ? (
-                  // LOADING IMAGE STATE
-                  <div className="text-center animate-fadeIn">
-                    <div className="text-6xl mb-4 animate-pulse">🎨</div>
-                    <p className="text-amber-100 text-lg mb-3">
-                      Painting your story...
-                    </p>
-                    <div className="flex gap-2 justify-center">
-                      <span className="w-3 h-3 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                      <span className="w-3 h-3 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                      <span className="w-3 h-3 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                    </div>
-                  </div>
-                ) : currentImage ? (
-                  // IMAGE DISPLAY STATE
-                  <div className="w-full h-full flex items-center justify-center animate-fadeIn">
-                    <img
-                      src={currentImage}
-                      alt="Story illustration"
-                      className="max-w-full max-h-full object-contain rounded-lg shadow-xl"
-                    />
+              <div className="absolute inset-0 p-8 overflow-y-auto">
+                {images.length > 0 ? (
+                  // IMAGE GALLERY STATE
+                  <div className="flex flex-col gap-6">
+                    {images.map((image, index) => (
+                      <div key={index} className="animate-fadeIn">
+                        <img
+                          src={image}
+                          alt={`Story illustration ${index + 1}`}
+                          className="w-full rounded-lg shadow-xl"
+                        />
+                        {index < images.length - 1 && (
+                          <div className="text-center text-amber-400 text-2xl my-6">
+                            ✦
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {isGeneratingImage && (
+                      // LOADING NEXT IMAGE
+                      <div className="text-center animate-fadeIn py-8">
+                        <div className="text-6xl mb-4 animate-pulse">🎨</div>
+                        <p className="text-amber-100 text-lg mb-3">
+                          Painting your story...
+                        </p>
+                        <div className="flex gap-2 justify-center">
+                          <span className="w-3 h-3 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                          <span className="w-3 h-3 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                          <span className="w-3 h-3 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   // PLACEHOLDER STATE
-                  <div className="text-center">
-                    <div className="text-6xl mb-4">✨</div>
-                    <p className="text-amber-100 text-lg">
-                      Illustrations will appear here
-                    </p>
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-6xl mb-4">✨</div>
+                      <p className="text-amber-100 text-lg">
+                        Illustrations will appear here
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>

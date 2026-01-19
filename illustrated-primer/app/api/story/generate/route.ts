@@ -17,17 +17,17 @@ export async function POST(request: Request) {
         ? 'This is an EDUCATIONAL story, so weave in science concepts, problem-solving, or learning moments naturally. Teach through adventure!'
         : 'This is a CREATIVE ADVENTURE story focused on imagination, excitement, and wonder. Keep it fun and fantastical!';
 
-      promptContent = `You are continuing an interactive adventure story for a 10-year-old girl named Harlow who loves science, art, and learning.
+      promptContent = `You are continuing an interactive adventure story for a 10-year-old reader who loves science, art, and learning.
 
 ${focusGuidance}
 
 Here's the story so far:
 ${previousStory}
 
-The reader (Harlow) just added this to the story:
+The reader just added this to the story:
 "${userContribution}"
 
-Continue the story (about 100-150 words) building on what Harlow wrote. Make her contribution meaningful and exciting. Keep the tone engaging and age-appropriate. End with another opportunity for her to respond.
+Continue the story (about 100-150 words) building on what the reader wrote. Make their contribution meaningful and exciting. Keep the tone engaging and age-appropriate. End with another opportunity for them to respond.
 
 IMPORTANT: The hero's name is ${heroName} and uses ${gender} pronouns. Always use the correct pronouns throughout the story.`;
     } else {
@@ -36,7 +36,7 @@ IMPORTANT: The hero's name is ${heroName} and uses ${gender} pronouns. Always us
         ? 'This is an EDUCATIONAL story. Incorporate science, math, engineering, or real-world problem-solving into the adventure. Make learning exciting and natural within the story!'
         : 'This is a CREATIVE ADVENTURE story. Focus on imagination, wonder, magic, and fantastical elements. Make it thrilling and fun!';
 
-      promptContent = `You are a creative storyteller for a 10-year-old girl named Harlow who loves science, art, and learning.
+      promptContent = `You are a creative storyteller for a 10-year-old reader who loves science, art, and learning.
 
 ${focusGuidance}
 
