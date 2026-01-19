@@ -201,6 +201,52 @@ Then open VS Code and verify the latest changes are there.
 
 **IMPORTANT:** Always pull from the "Current Working Branch" listed at the top of this file!
 
+### Database Migration Best Practices
+
+**CRITICAL: Before creating or running Supabase migrations, ALWAYS verify the actual database schema types.**
+
+**Why this matters:**
+- Migration files might assume different ID types (UUID vs BIGINT) than the actual database
+- Foreign key constraints will fail if types don't match exactly
+- TypeScript types must match database schema for proper type safety
+
+**Schema Verification Query:**
+
+Run this in your Supabase SQL Editor BEFORE creating migrations:
+
+```sql
+SELECT
+  table_name,
+  column_name,
+  data_type,
+  udt_name
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name IN ('characters', 'stories', 'story_sessions', 'educational_progress')
+  AND column_name LIKE '%id%'
+ORDER BY table_name, column_name;
+```
+
+**Current Database Schema (as of 2026-01-19):**
+- `characters.id` = **BIGINT**
+- `stories.id` = **UUID**
+- `stories.character_id` = **BIGINT** (references characters.id)
+- `story_sessions.id` = **UUID**
+- `story_sessions.story_id` = **UUID** (references stories.id)
+- `educational_progress.id` = **BIGINT**
+- `educational_progress.character_id` = **BIGINT** (references characters.id)
+
+**Migration Workflow:**
+1. Run schema verification query above
+2. Update TypeScript types in `lib/supabase.ts` to match
+3. Create migration file with correct types
+4. Run migration in Supabase SQL Editor
+5. Verify with: `SELECT COUNT(*) FROM <new_table_name>;`
+
+**TypeScript Type Mapping:**
+- PostgreSQL `UUID` → TypeScript `string`
+- PostgreSQL `BIGINT` → TypeScript `number`
+
 ---
 
 ## 🛠️ Technology Stack (FINALIZED)
