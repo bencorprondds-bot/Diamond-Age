@@ -42,7 +42,7 @@ export function Book() {
   
   const isFormValid = heroName.trim().length > 0;
   
-  const handleBeginAdventure = () => {
+  const handleBeginAdventure = async () => {
     console.log('Hero Created:', {
       heroName,
       lovesToDo,
@@ -53,11 +53,36 @@ export function Book() {
     setShowSaved(false);
     setIsGenerating(true);
     
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/story/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          heroName,
+          lovesToDo,
+          wantsToLearn,
+          specialTrait,
+          hobbies
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      setIsGenerating(false);
+      setShowStory(true);
+      setStoryText(data.story);
+    } catch (error) {
+      console.error('Failed to generate story:', error);
       setIsGenerating(false);
       setShowStory(true);
       setStoryText(`Once upon a time, there lived a remarkable hero named ${heroName}. ${heroName} loved nothing more than ${lovesToDo || 'exploring new places'}, and spent their days dreaming of ${wantsToLearn || 'great adventures'}. What made ${heroName} truly special was ${specialTrait || 'their kind heart'}, a gift that would prove invaluable in the journey ahead. When not on adventures, ${heroName} enjoyed ${hobbies || 'reading by candlelight'}. Little did they know that today would be the beginning of their greatest adventure yet...`);
-    }, 3000);
+    }
   };
 
   return (
