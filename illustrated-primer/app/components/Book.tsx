@@ -67,7 +67,13 @@ export function Book() {
   // Image state
   const [images, setImages] = useState<string[]>([]);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  
+
+  // Typing metrics state
+  const [typingStartTime, setTypingStartTime] = useState<number | null>(null);
+  const [totalCharactersTyped, setTotalCharactersTyped] = useState(0);
+  const [correctionsCount, setCorrectionsCount] = useState(0);
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+
   // Typewriter effect state
   const [displayedHeading, setDisplayedHeading] = useState('');
   const fullHeading = screen === 'create' ? '✨ Create Your Hero ✨' : screen === 'edit' ? '✨ Edit Your Hero ✨' : screen === 'adventures' ? `✨ ${selectedCharacter?.name}'s Adventures ✨` : '✨ Your Adventures ✨';
@@ -182,6 +188,9 @@ export function Book() {
         }
       }
 
+      // Calculate typing metrics for this session
+      const typingMetrics = calculateTypingMetrics();
+
       const body: any = {
         title: finalTitle,
         segments: storySegments.map((seg, idx) => ({
@@ -204,6 +213,8 @@ export function Book() {
         if (images && images.length > 0) {
           body.firstImageUrl = images[0];
         }
+        // Include typing metrics
+        body.typingMetrics = typingMetrics;
       }
 
       console.log('Saving story with body:', JSON.stringify(body, null, 2));
@@ -426,6 +437,82 @@ export function Book() {
     }
   };
 
+  // Typing metrics handlers
+  const handleTypingStart = () => {
+    if (!typingStartTime) {
+      const now = Date.now();
+      setTypingStartTime(now);
+      if (!sessionStartTime) {
+        setSessionStartTime(now);
+      }
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Start timer on first keystroke
+    handleTypingStart();
+
+    // Track backspace for corrections
+    if (e.key === 'Backspace') {
+      setCorrectionsCount(prev => prev + 1);
+    }
+  };
+
+  const handleTypingChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    const oldValue = userInput;
+
+    // Start timer on first change
+    handleTypingStart();
+
+    // Track characters typed (only count additions, not deletions)
+    if (newValue.length > oldValue.length) {
+      const charsAdded = newValue.length - oldValue.length;
+      setTotalCharactersTyped(prev => prev + charsAdded);
+    }
+
+    setUserInput(newValue);
+  };
+
+  const calculateTypingMetrics = () => {
+    if (!typingStartTime || !sessionStartTime) {
+      return {
+        totalWordsTyped: 0,
+        totalTimeSeconds: 0,
+        averageWPM: 0,
+        accuracyPercentage: 100,
+        correctionsCount: 0
+      };
+    }
+
+    const totalTimeSeconds = (Date.now() - sessionStartTime) / 1000;
+    const minutes = totalTimeSeconds / 60;
+
+    // WPM calculation: (characters / 5) / minutes
+    const words = totalCharactersTyped / 5;
+    const averageWPM = minutes > 0 ? Math.round(words / minutes) : 0;
+
+    // Accuracy: fewer corrections = higher accuracy
+    const accuracyPercentage = totalCharactersTyped > 0
+      ? Math.max(0, Math.round(100 - (correctionsCount / totalCharactersTyped * 100)))
+      : 100;
+
+    return {
+      totalWordsTyped: Math.round(words),
+      totalTimeSeconds: Math.round(totalTimeSeconds),
+      averageWPM,
+      accuracyPercentage,
+      correctionsCount
+    };
+  };
+
+  const resetTypingMetrics = () => {
+    setTypingStartTime(null);
+    setTotalCharactersTyped(0);
+    setCorrectionsCount(0);
+    // Keep sessionStartTime to track overall session
+  };
+
   const handleBeginAdventure = async () => {
     console.log('Hero Created:', {
       heroName,
@@ -437,7 +524,7 @@ export function Book() {
       specialTrait,
       hobbies
     });
-    
+
     setIsGenerating(true);
 
     try {
@@ -476,6 +563,10 @@ export function Book() {
       setShowStory(true);
       setScreen('story');
       setStorySegments([{ type: 'ai', text: data.story }]);
+
+      // Initialize typing session
+      setSessionStartTime(Date.now());
+      resetTypingMetrics();
 
       // Generate the first illustration for the story
       generateImage(data.story, true);
@@ -526,6 +617,9 @@ export function Book() {
       setIsGenerating(false);
       // Add AI's continuation as a new segment
       setStorySegments(prev => [...prev, { type: 'ai', text: data.story }]);
+
+      // Reset typing metrics for next typing session
+      resetTypingMetrics();
 
       // Generate a new illustration for this continuation
       generateImage(data.story);
@@ -835,7 +929,8 @@ export function Book() {
                     <div className="flex flex-col gap-3 mt-4">
                       <textarea
                         value={userInput}
-                        onChange={(e) => setUserInput(e.target.value)}
+                        onChange={handleTypingChange}
+                        onKeyDown={handleKeyDown}
                         className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg px-4 py-3 font-serif text-amber-950 placeholder-amber-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all resize-none"
                         placeholder="What happens next? Type your response..."
                         rows={3}
