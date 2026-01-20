@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    const { characterId, title, storyFocus, genre, segments, images } = await request.json();
+    const { characterId, title, storyFocus, genre, segments, images, summary, firstImageUrl } = await request.json();
 
     if (!characterId || !title || !storyFocus || !segments) {
       return NextResponse.json(
@@ -16,17 +16,23 @@ export async function POST(request: Request) {
       ? segments.map((seg: any) => seg?.text).filter(Boolean).join('\n\n')
       : '';
 
+    const insertData: any = {
+      character_id: characterId,
+      title,
+      story_type: storyFocus,
+      genre: genre || 'fantasy',
+      segments: segments,
+      images: images || [],
+      content,
+      total_sessions: 1,
+    };
+
+    if (summary) insertData.summary = summary;
+    if (firstImageUrl) insertData.first_image_url = firstImageUrl;
+
     const { data, error } = await supabaseAdmin
       .from('stories')
-      .insert({
-        character_id: characterId,
-        title,
-        story_type: storyFocus,
-        genre: genre || 'fantasy',
-        segments: segments,
-        images: images || [],
-        content,
-      })
+      .insert(insertData)
       .select()
       .single();
 

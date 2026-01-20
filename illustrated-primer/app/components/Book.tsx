@@ -147,13 +147,43 @@ export function Book() {
   };
 
   const saveStory = async () => {
-    if (!currentCharacter || !storyTitle.trim()) return;
+    if (!currentCharacter) return;
 
     try {
       const effectiveStoryFocus = storyFocus?.trim() || 'creative';
       const method = currentStoryId ? 'PUT' : 'POST';
+
+      let finalTitle = storyTitle.trim();
+      let summary = '';
+
+      // For new stories, auto-generate title and summary if title is empty
+      if (!currentStoryId && !finalTitle) {
+        try {
+          const metadataResponse = await fetch('/api/story/generate-metadata', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              segments: storySegments,
+              storyType: effectiveStoryFocus,
+              genre: genre?.trim() || 'fantasy'
+            }),
+          });
+
+          if (metadataResponse.ok) {
+            const metadata = await metadataResponse.json();
+            finalTitle = metadata.title || 'Untitled Adventure';
+            summary = metadata.summary || '';
+          } else {
+            finalTitle = 'Untitled Adventure';
+          }
+        } catch (metadataError) {
+          console.error('Failed to generate metadata:', metadataError);
+          finalTitle = 'Untitled Adventure';
+        }
+      }
+
       const body: any = {
-        title: storyTitle,
+        title: finalTitle,
         segments: storySegments.map((seg, idx) => ({
           ...seg,
           timestamp: new Date().toISOString(),
@@ -167,6 +197,13 @@ export function Book() {
         body.characterId = currentCharacter.id;
         body.storyFocus = effectiveStoryFocus;
         body.genre = genre?.trim() || 'fantasy';
+        if (summary) {
+          body.summary = summary;
+        }
+        // Store first image as thumbnail
+        if (images && images.length > 0) {
+          body.firstImageUrl = images[0];
+        }
       }
 
       console.log('Saving story with body:', JSON.stringify(body, null, 2));
@@ -745,24 +782,19 @@ export function Book() {
                   {showSaveDialog && (
                     <div className="bg-[#FDF8F0] border-2 border-amber-400 rounded-lg p-4 mb-4 animate-fadeIn">
                       <label className="text-amber-800 font-serif text-sm block mb-2">
-                        Story Title:
+                        Story Title (optional - we'll create one for you!):
                       </label>
                       <input
                         type="text"
                         value={storyTitle}
                         onChange={(e) => setStoryTitle(e.target.value)}
-                        placeholder="Give your story a name..."
+                        placeholder="Leave blank for auto-generated title..."
                         className="w-full bg-white border-2 border-amber-300 rounded-lg px-4 py-2 font-serif text-amber-950 mb-3 focus:outline-none focus:border-amber-500"
                       />
                       <div className="flex gap-2">
                         <button
                           onClick={saveStory}
-                          disabled={!storyTitle.trim()}
-                          className={`flex-1 py-2 px-4 rounded-lg font-serif text-sm transition-all ${
-                            storyTitle.trim()
-                              ? 'bg-amber-600 text-amber-50 hover:bg-amber-700'
-                              : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                          }`}
+                          className="flex-1 py-2 px-4 rounded-lg font-serif text-sm bg-amber-600 text-amber-50 hover:bg-amber-700 transition-all"
                         >
                           Save
                         </button>
