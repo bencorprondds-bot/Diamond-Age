@@ -73,6 +73,9 @@ export function Book() {
   const [totalCharactersTyped, setTotalCharactersTyped] = useState(0);
   const [correctionsCount, setCorrectionsCount] = useState(0);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+  const [showSessionSummary, setShowSessionSummary] = useState(false);
+  const [sessionMetrics, setSessionMetrics] = useState<any>(null);
+  const [showLiveProgress, setShowLiveProgress] = useState(false);
 
   // Typewriter effect state
   const [displayedHeading, setDisplayedHeading] = useState('');
@@ -247,6 +250,11 @@ export function Book() {
         setCurrentStoryId(data.story.id);
         setShowSaveDialog(false);
         setShowSaved(true);
+
+        // Show session summary with typing metrics
+        setSessionMetrics(typingMetrics);
+        setShowSessionSummary(true);
+
         setTimeout(() => setShowSaved(false), 3000);
       } else {
         console.error('No story in response:', data);
@@ -901,7 +909,101 @@ export function Book() {
                       </div>
                     </div>
                   )}
-                  
+
+                  {showLiveProgress && sessionMetrics && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn">
+                      <div className="bg-[#F4E8D8] rounded-lg shadow-2xl p-6 max-w-sm w-full mx-4 border-4 border-blue-600">
+                        <h3 className="text-2xl font-serif text-amber-900 mb-4 text-center font-bold">
+                          📊 Live Stats
+                        </h3>
+
+                        <div className="space-y-3 mb-4">
+                          <div className="bg-[#FDF8F0] rounded-lg p-3 border-2 border-blue-300">
+                            <div className="text-xs text-amber-700 mb-1">Current Speed</div>
+                            <div className="text-2xl font-bold text-blue-700">{sessionMetrics.averageWPM} WPM</div>
+                          </div>
+
+                          <div className="bg-[#FDF8F0] rounded-lg p-3 border-2 border-blue-300">
+                            <div className="text-xs text-amber-700 mb-1">Accuracy</div>
+                            <div className="text-2xl font-bold text-blue-700">{sessionMetrics.accuracyPercentage}%</div>
+                          </div>
+
+                          <div className="bg-[#FDF8F0] rounded-lg p-3 border-2 border-blue-300">
+                            <div className="text-xs text-amber-700 mb-1">Words Typed</div>
+                            <div className="text-2xl font-bold text-blue-700">{sessionMetrics.totalWordsTyped}</div>
+                          </div>
+
+                          <div className="text-center text-xs text-amber-700">
+                            {Math.floor(sessionMetrics.totalTimeSeconds / 60)}m {sessionMetrics.totalTimeSeconds % 60}s elapsed
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => setShowLiveProgress(false)}
+                          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-serif hover:bg-blue-700 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg transition-all"
+                        >
+                          Keep Writing
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {showSessionSummary && sessionMetrics && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn">
+                      <div className="bg-[#F4E8D8] rounded-lg shadow-2xl p-8 max-w-md w-full mx-4 border-4 border-amber-600">
+                        <h3 className="text-3xl font-serif text-amber-900 mb-6 text-center font-bold">
+                          📊 Session Summary
+                        </h3>
+
+                        <div className="space-y-4 mb-6">
+                          <div className="bg-[#FDF8F0] rounded-lg p-4 border-2 border-amber-300">
+                            <div className="text-sm text-amber-700 mb-1">Words Typed</div>
+                            <div className="text-3xl font-bold text-amber-900">{sessionMetrics.totalWordsTyped}</div>
+                          </div>
+
+                          <div className="bg-[#FDF8F0] rounded-lg p-4 border-2 border-amber-300">
+                            <div className="text-sm text-amber-700 mb-1">Average Speed</div>
+                            <div className="text-3xl font-bold text-amber-900">{sessionMetrics.averageWPM} <span className="text-lg">WPM</span></div>
+                          </div>
+
+                          <div className="bg-[#FDF8F0] rounded-lg p-4 border-2 border-amber-300">
+                            <div className="text-sm text-amber-700 mb-1">Accuracy</div>
+                            <div className="text-3xl font-bold text-amber-900">{sessionMetrics.accuracyPercentage}%</div>
+                          </div>
+
+                          <div className="bg-[#FDF8F0] rounded-lg p-4 border-2 border-amber-300">
+                            <div className="text-sm text-amber-700 mb-1">Time Spent</div>
+                            <div className="text-2xl font-bold text-amber-900">
+                              {Math.floor(sessionMetrics.totalTimeSeconds / 60)}m {sessionMetrics.totalTimeSeconds % 60}s
+                            </div>
+                          </div>
+
+                          <div className="text-center text-sm text-amber-700 mt-4">
+                            {sessionMetrics.correctionsCount} corrections made
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => {
+                              setShowSessionSummary(false);
+                              resetToMenu();
+                            }}
+                            className="flex-1 bg-gradient-to-r from-amber-700 to-amber-800 text-amber-50 py-3 px-6 rounded-lg font-serif text-lg hover:from-amber-800 hover:to-amber-900 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg transition-all"
+                          >
+                            Done
+                          </button>
+                          <button
+                            onClick={() => setShowSessionSummary(false)}
+                            className="flex-1 bg-amber-200 text-amber-900 py-3 px-6 rounded-lg font-serif text-lg hover:bg-amber-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg transition-all"
+                          >
+                            Continue Writing
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="text-lg font-serif leading-relaxed flex-1 overflow-y-auto mb-4">
                     {storySegments.map((segment, index) => (
                       <div key={index}>
@@ -957,6 +1059,17 @@ export function Book() {
                           }`}
                         >
                           {showSaved ? '✓ Saved!' : '💾 Save'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            const metrics = calculateTypingMetrics();
+                            setSessionMetrics(metrics);
+                            setShowLiveProgress(true);
+                          }}
+                          className="py-2 px-4 rounded-lg font-serif text-sm bg-blue-600 text-white hover:bg-blue-700 shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+                          title="View your typing stats"
+                        >
+                          📊 Progress
                         </button>
                       </div>
                     </div>
