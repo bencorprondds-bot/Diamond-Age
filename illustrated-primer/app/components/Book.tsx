@@ -30,12 +30,13 @@ type Story = {
 export function Book() {
   const [isOpen, setIsOpen] = useState(false);
   
-  // Screen state: 'menu' | 'create' | 'edit' | 'story'
-  const [screen, setScreen] = useState<'menu' | 'create' | 'edit' | 'story'>('menu');
-  
+  // Screen state: 'menu' | 'create' | 'edit' | 'story' | 'adventures'
+  const [screen, setScreen] = useState<'menu' | 'create' | 'edit' | 'story' | 'adventures'>('menu');
+
   // Character management
   const [savedCharacters, setSavedCharacters] = useState<Character[]>([]);
   const [currentCharacter, setCurrentCharacter] = useState<Character | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [editingCharacterId, setEditingCharacterId] = useState<number | null>(null);
   
   // Form state
@@ -69,7 +70,7 @@ export function Book() {
   
   // Typewriter effect state
   const [displayedHeading, setDisplayedHeading] = useState('');
-  const fullHeading = screen === 'create' ? '✨ Create Your Hero ✨' : screen === 'edit' ? '✨ Edit Your Hero ✨' : '✨ Your Adventures ✨';
+  const fullHeading = screen === 'create' ? '✨ Create Your Hero ✨' : screen === 'edit' ? '✨ Edit Your Hero ✨' : screen === 'adventures' ? `✨ ${selectedCharacter?.name}'s Adventures ✨` : '✨ Your Adventures ✨';
   
   // Load saved characters when book opens
   useEffect(() => {
@@ -268,6 +269,12 @@ export function Book() {
     setScreen('edit');
   };
 
+  const viewCharacterAdventures = async (character: Character) => {
+    setSelectedCharacter(character);
+    await loadStoriesForCharacter(character.id);
+    setScreen('adventures');
+  };
+
   const startNewStoryWithCharacter = (character: Character) => {
     setCurrentCharacter(character);
     setHeroName(character.name);
@@ -276,17 +283,17 @@ export function Book() {
     setWantsToLearn(character.wants_to_learn || '');
     setSpecialTrait(character.special_trait || '');
     setHobbies(character.hobbies || '');
-    
+
     // Reset story state
     setCurrentStoryId(null);
     setStoryTitle('');
     setStorySegments([]);
     setImages([]);
     setShowStory(false);
-    
+
     // Load previous stories for this character
     loadStoriesForCharacter(character.id);
-    
+
     setScreen('create');
   };
 
@@ -542,9 +549,10 @@ export function Book() {
                     ) : (
                       <div className="grid gap-4">
                         {savedCharacters.map((character) => (
-                          <div 
+                          <div
                             key={character.id}
-                            className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg p-4 hover:border-amber-500 transition-all"
+                            onClick={() => viewCharacterAdventures(character)}
+                            className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg p-4 hover:border-amber-500 transition-all cursor-pointer"
                           >
                             <div className="flex justify-between items-start mb-2">
                               <h4 className="text-xl font-serif text-amber-900 font-bold">
@@ -555,24 +563,13 @@ export function Book() {
                               </span>
                             </div>
                             {character.loves_to_do && (
-                              <p className="text-sm text-amber-800 mb-3">
+                              <p className="text-sm text-amber-800 mb-2">
                                 Loves to: {character.loves_to_do}
                               </p>
                             )}
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => startNewStoryWithCharacter(character)}
-                                className="flex-1 bg-amber-600 text-amber-50 py-2 px-4 rounded-lg font-serif text-sm hover:bg-amber-700 transition-all"
-                              >
-                                New Adventure
-                              </button>
-                              <button
-                                onClick={() => loadCharacterForEdit(character)}
-                                className="bg-amber-200 text-amber-900 py-2 px-4 rounded-lg font-serif text-sm hover:bg-amber-300 transition-all"
-                              >
-                                Edit
-                              </button>
-                            </div>
+                            <p className="text-xs text-amber-600 italic">
+                              Click to view adventures →
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -585,6 +582,117 @@ export function Book() {
                   >
                     + Create New Hero
                   </button>
+                </div>
+              ) : screen === 'adventures' ? (
+                // CHARACTER ADVENTURES VIEW
+                <div className="flex-1 flex flex-col animate-fadeIn">
+                  <div className="flex justify-between items-center mb-6">
+                    <button
+                      onClick={() => {
+                        setScreen('menu');
+                        setSelectedCharacter(null);
+                        setSavedStories([]);
+                      }}
+                      className="text-amber-700 hover:text-amber-900 font-serif text-sm transition-all"
+                    >
+                      ← Back to Characters
+                    </button>
+                    <button
+                      onClick={() => selectedCharacter && startNewStoryWithCharacter(selectedCharacter)}
+                      className="bg-amber-600 text-amber-50 py-2 px-4 rounded-lg font-serif text-sm hover:bg-amber-700 transition-all"
+                    >
+                      + New Adventure
+                    </button>
+                  </div>
+
+                  <h3 className="text-3xl font-serif text-amber-900 mb-6 text-center">
+                    {displayedHeading}
+                    <span className="animate-pulse">|</span>
+                  </h3>
+
+                  {selectedCharacter && (
+                    <div className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg p-4 mb-6">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="text-xl font-serif text-amber-900 font-bold mb-2">
+                            {selectedCharacter.name}
+                          </h4>
+                          {selectedCharacter.loves_to_do && (
+                            <p className="text-sm text-amber-800">
+                              Loves to: {selectedCharacter.loves_to_do}
+                            </p>
+                          )}
+                          {selectedCharacter.wants_to_learn && (
+                            <p className="text-sm text-amber-800">
+                              Wants to learn: {selectedCharacter.wants_to_learn}
+                            </p>
+                          )}
+                        </div>
+                        <span className="text-sm text-amber-600 px-2 py-1 bg-amber-100 rounded">
+                          {selectedCharacter.gender}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex-1 overflow-y-auto">
+                    {savedStories.length === 0 ? (
+                      <div className="text-center py-12">
+                        <div className="text-6xl mb-4">🌟</div>
+                        <p className="text-amber-800 font-serif text-lg mb-4">
+                          No adventures yet for {selectedCharacter?.name}!
+                        </p>
+                        <p className="text-amber-600 font-serif text-sm">
+                          Click "New Adventure" above to begin.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid gap-4 pb-4">
+                        {savedStories.map((story) => (
+                          <div
+                            key={story.id}
+                            onClick={() => loadStory(story.id)}
+                            className="bg-[#FDF8F0] border-2 border-amber-300 rounded-lg overflow-hidden hover:border-amber-500 transition-all cursor-pointer group"
+                          >
+                            <div className="flex gap-4">
+                              {story.images && story.images[0] && (
+                                <div className="w-32 h-32 flex-shrink-0 bg-amber-100">
+                                  <img
+                                    src={story.images[0]}
+                                    alt={story.title || 'Adventure thumbnail'}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              )}
+                              <div className="flex-1 p-4">
+                                <h5 className="text-lg font-serif text-amber-900 font-bold mb-2 group-hover:text-amber-700">
+                                  {story.title || 'Untitled Adventure'}
+                                </h5>
+                                <div className="flex gap-2 mb-2">
+                                  <span className="text-xs text-amber-600 px-2 py-1 bg-amber-100 rounded">
+                                    {story.story_type}
+                                  </span>
+                                  {story.genre && (
+                                    <span className="text-xs text-amber-600 px-2 py-1 bg-amber-100 rounded capitalize">
+                                      {story.genre}
+                                    </span>
+                                  )}
+                                </div>
+                                {story.segments && story.segments.length > 0 && (
+                                  <p className="text-sm text-amber-800 line-clamp-2">
+                                    {story.segments[0].text.substring(0, 120)}...
+                                  </p>
+                                )}
+                                <p className="text-xs text-amber-600 mt-2 italic">
+                                  Click to continue →
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : isGenerating ? (
                 // LOADING STATE
