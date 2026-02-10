@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { ProfileSelector, type Profile } from './ProfileSelector';
 import { ReadAloud } from './ReadAloud';
+import { ThemeSelector } from './ThemeSelector';
+import type { StoryTheme } from '../lib/prompts';
 
 export function Book() {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,6 +17,7 @@ export function Book() {
   const [wantsToLearn, setWantsToLearn] = useState('');
   const [specialTrait, setSpecialTrait] = useState('');
   const [hobbies, setHobbies] = useState('');
+  const [theme, setTheme] = useState<StoryTheme | ''>('');
 
   // Confirmation state
   const [showSaved, setShowSaved] = useState(false);
@@ -71,7 +74,8 @@ export function Book() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, activeProfile, showStory]);
 
-  const isFormValid = heroName.trim().length > 0 && gender.length > 0;
+  const isFormValid = heroName.trim().length > 0 && gender.length > 0 && theme.length > 0;
+  const readerAge = activeProfile === 'explorer' ? 'younger' : 'older';
 
   const handleBeginAdventure = async () => {
     console.log('Hero Created:', {
@@ -94,10 +98,12 @@ export function Book() {
         body: JSON.stringify({
           heroName,
           gender,
+          theme,
+          readerAge,
           lovesToDo,
           wantsToLearn,
           specialTrait,
-          hobbies
+          hobbies,
         }),
       });
 
@@ -141,7 +147,9 @@ export function Book() {
           previousStory,
           userContribution,
           heroName,
-          gender
+          gender,
+          theme,
+          readerAge,
         }),
       });
 
@@ -346,6 +354,11 @@ export function Book() {
                         ))}
                       </div>
                     </fieldset>
+
+                    <ThemeSelector
+                      selected={theme}
+                      onSelect={setTheme}
+                    />
 
                     <div className="flex flex-col gap-1">
                       <label htmlFor="loves-to-do" className="text-amber-800 font-serif text-sm">What do they love to do?</label>
